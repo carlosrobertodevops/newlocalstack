@@ -11,6 +11,7 @@ htmlcov
 # ignore .vs files that store temproray cache of visual studio workspace settings
 .vs
 tests/unit/aws/
+security/secret-scanning/
 .cache
 .filesystem
 
