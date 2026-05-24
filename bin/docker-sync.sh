@@ -44,6 +44,14 @@ docker cp "${REPO_ROOT}/localstack-core/localstack/gcp/gateway.py" \
 docker cp "${REPO_ROOT}/localstack-core/localstack/gcp/services/storage/models.py" \
   "${CONTAINER}:${DEST}/gcp/services/storage/models.py"
 
+echo "[sync] copying azure module (entra graph router, arm extras)"
+docker cp "${REPO_ROOT}/localstack-core/localstack/azure/." \
+  "${CONTAINER}:${DEST}/azure/"
+
+echo "[sync] copying aws/handlers/multi_cloud.py (graph path routing)"
+docker cp "${REPO_ROOT}/localstack-core/localstack/aws/handlers/multi_cloud.py" \
+  "${CONTAINER}:${DEST}/aws/handlers/multi_cloud.py"
+
 echo "[sync] patching entry_points (idempotent)"
 docker exec "${CONTAINER}" python3 - <<PY
 import re
