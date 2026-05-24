@@ -133,6 +133,11 @@ class ArmRouter:
                     endpoint="resource_action",
                     methods=["POST", "GET"],
                 ),
+                Rule(
+                    "/subscriptions/<sub>/resourceGroups/<rg>/providers/<ns>/<rtype>/<name>/<sub_type>/<sub_name>",
+                    endpoint="sub_resource",
+                    methods=["GET", "PUT", "DELETE"],
+                ),
             ]
         )
 
@@ -301,6 +306,74 @@ class ArmRouter:
         all_resources = self.provider.list_resources(scope)
         filtered = [r for r in all_resources if r.type.lower() == type_filter]
         return _json_response(serialize_resource_list(filtered))
+
+    _STORAGE_SUB_DEFAULTS = {
+        "fileservices": {
+            "protocolSettings": {
+                "smb": {
+                    "versions": "SMB2.1;SMB3.0;SMB3.1.1",
+                    "authenticationMethods": "NTLMv2;Kerberos",
+                    "kerberosTicketEncryption": "RC4-HMAC;AES-256",
+                    "channelEncryption": "AES-128-CCM;AES-128-GCM;AES-256-GCM",
+                }
+            },
+            "cors": {"corsRules": []},
+            "shareDeleteRetentionPolicy": {"enabled": False, "days": 0},
+        },
+        "blobservices": {
+            "cors": {"corsRules": []},
+            "deleteRetentionPolicy": {"enabled": False},
+            "containerDeleteRetentionPolicy": {"enabled": False},
+            "isVersioningEnabled": False,
+            "changeFeed": {"enabled": False},
+            "restorePolicy": {"enabled": False},
+            "lastAccessTimeTrackingPolicy": {"enable": False},
+        },
+        "queueservices": {"cors": {"corsRules": []}},
+        "tableservices": {"cors": {"corsRules": []}},
+    }
+
+    def _handle_sub_resource(
+        self,
+        request: Request,
+        *,
+        sub: str,
+        rg: str,
+        ns: str,
+        rtype: str,
+        name: str,
+        sub_type: str,
+        sub_name: str,
+    ) -> Response:
+        sub_lower = sub_type.lower()
+        if (
+            ns.lower() == "microsoft.storage"
+            and rtype.lower() == "storageaccounts"
+            and sub_lower in self._STORAGE_SUB_DEFAULTS
+            and sub_name.lower() == "default"
+        ):
+            defaults = self._STORAGE_SUB_DEFAULTS[sub_lower]
+            if request.method == "PUT":
+                try:
+                    body = self._json_body(request)
+                except json.JSONDecodeError:
+                    body = {}
+                merged_props = {**defaults, **(body.get("properties") or {})}
+            else:
+                merged_props = defaults
+            return _json_response(
+                {
+                    "id": (
+                        f"/subscriptions/{sub}/resourceGroups/{rg}/providers/{ns}/{rtype}/{name}/{sub_type}/{sub_name}"
+                    ),
+                    "name": sub_name,
+                    "type": f"{ns}/{rtype}/{sub_type}",
+                    "properties": merged_props,
+                }
+            )
+        if request.method == "DELETE":
+            return Response(status=204)
+        return _error("NotFound", f"sub-resource {sub_type}/{sub_name} not emulated", 404)
 
     def _handle_resource_action(
         self,

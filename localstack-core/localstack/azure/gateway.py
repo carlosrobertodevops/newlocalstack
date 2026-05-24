@@ -165,6 +165,26 @@ class AzureGateway:
         if m:
             return self.queue_router, f"/{m.group('acct')}{request.path}"
 
+        # Path-based storage data-plane fallback (TLS sidecar at localhost:4569
+        # with primaryEndpoints rewritten to /<account>/...).
+        qs = request.query_string
+        if isinstance(qs, bytes):
+            qs = qs.decode("ascii", "ignore")
+        if qs and ("restype=" in qs or "comp=" in qs) and request.path.strip("/"):
+            comp = request.args.get("comp") or ""
+            if "queue" in comp:
+                return self.queue_router, None
+            return self.blob_router, None
+        # Path-based blob path: /<account>/<container>/<blob> with PUT/GET
+        # (no query). Match only when account is the first segment.
+        parts = request.path.strip("/").split("/", 2)
+        if (
+            len(parts) >= 3
+            and request.method in ("GET", "HEAD", "PUT", "DELETE")
+            and not request.path.startswith(("/subscriptions/", "/v1.0/", "/beta/"))
+        ):
+            return self.blob_router, None
+
         m = _FUNCTIONS_HOST_RE.match(host)
         if m:
             return self.functions_router, f"/{m.group('app')}{request.path}"

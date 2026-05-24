@@ -95,6 +95,22 @@ def _looks_like_azure_graph(path: str) -> bool:
     return False
 
 
+def _looks_like_azure_storage_dataplane(path: str, query_string: str) -> bool:
+    # Azure Storage data-plane paths served path-based via the TLS sidecar.
+    # Recognized by Azure-specific query params (`restype=`, `comp=`).
+    if not query_string:
+        return False
+    azure_params = ("restype=", "comp=")
+    if not any(p in query_string for p in azure_params):
+        return False
+    # Must be a `/<account>` prefix at minimum (single segment).
+    stripped = path.strip("/")
+    if not stripped:
+        return False
+    # Avoid hijacking AWS S3 `?versioning`, `?location`, etc.
+    return any(p in query_string for p in azure_params)
+
+
 def _looks_like_gcp_v1_projects(path: str) -> bool:
     # /v1/projects/<id>/(topics|subscriptions|databases|secrets|keyRings|serviceAccounts|locations)
     if not (path.startswith("/v1/projects/") or path.startswith("/v2/projects/")):
@@ -140,7 +156,7 @@ class MultiCloudRouterHandler(Handler):
         self._gateway_cache[cloud_name] = gw
         return gw
 
-    def _match_cloud(self, host: str, path: str) -> str | None:
+    def _match_cloud(self, host: str, path: str, query_string: str = "") -> str | None:
         if host in _AZURE_HOSTS:
             return "azure"
         if any(host.endswith(suffix) for suffix in _AZURE_HOST_SUFFIXES):
@@ -152,6 +168,8 @@ class MultiCloudRouterHandler(Handler):
         if any(path.startswith(p) for p in _AZURE_PATH_PREFIXES):
             return "azure"
         if _looks_like_azure_graph(path):
+            return "azure"
+        if _looks_like_azure_storage_dataplane(path, query_string):
             return "azure"
         if path.endswith("/oauth2/v2.0/token"):
             return "azure"
@@ -174,7 +192,10 @@ class MultiCloudRouterHandler(Handler):
     def __call__(self, chain: HandlerChain, context: RequestContext, response: Response):
         request = context.request
         host = (request.host or "").split(":", 1)[0].lower()
-        cloud = self._match_cloud(host, request.path)
+        qs = request.query_string
+        if isinstance(qs, bytes):
+            qs = qs.decode("ascii", "ignore")
+        cloud = self._match_cloud(host, request.path, qs or "")
         if cloud is None:
             return
         gw = self._gateway_for(cloud)
