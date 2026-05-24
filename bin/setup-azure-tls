@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Project-level Azure TLS bootstrap.
+#
+# Replaces localstack-tls/certs/{cert,key}.pem with a cert issued by mkcert's
+# local CA. After `mkcert -install` runs once (sudo prompt), every cert it
+# issues is trusted by Go, Python, Node, browsers — no per-cert keychain trust.
+#
+# This is the project-side fix for the azurerm "x509: certificate signed by
+# unknown authority" error on macOS, where Go ignores SSL_CERT_FILE.
+#
+# Usage:  make setup-azure-tls      (or: bin/setup-azure-tls)
+# Removes: bin/setup-azure-tls --uninstall
+set -euo pipefail
+
+REPO_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]:-$0}" )/.." && pwd )"
+CERT_DIR="${REPO_ROOT}/localstack-tls/certs"
+
+uninstall() {
+  command -v mkcert >/dev/null 2>&1 || { echo "mkcert not installed; nothing to do."; exit 0; }
+  mkcert -uninstall
+  echo "[setup-azure-tls] mkcert root CA removed from OS trust store."
+}
+
+[ "${1:-}" = "--uninstall" ] && { uninstall; exit 0; }
+
+# 1. ensure mkcert is installed
+if ! command -v mkcert >/dev/null 2>&1; then
+  echo "[setup-azure-tls] mkcert not found. Installing..."
+  case "$(uname -s)" in
+    Darwin)
+      command -v brew >/dev/null 2>&1 || { echo "ERROR: install Homebrew first (https://brew.sh) or install mkcert manually." >&2; exit 1; }
+      brew install mkcert nss
+      ;;
+    Linux)
+      if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get update && sudo apt-get install -y libnss3-tools mkcert
+      elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y nss-tools mkcert
+      else
+        echo "ERROR: install mkcert manually (https://github.com/FiloSottile/mkcert)." >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "ERROR: unsupported OS $(uname -s)." >&2
+      exit 1
+      ;;
+  esac
+fi
+
+# 2. install mkcert root CA into OS trust store (idempotent; sudo first time only)
+mkcert -install
+
+# 3. issue cert for the hostnames the azurerm provider hits via LocalStack
+mkdir -p "${CERT_DIR}"
+mkcert -cert-file "${CERT_DIR}/cert.pem" -key-file "${CERT_DIR}/key.pem" \
+  localhost 127.0.0.1 \
+  management.azure.com login.microsoftonline.com graph.microsoft.com \
+  '*.blob.core.windows.net' '*.vault.azure.net'
+
+# 4. restart TLS sidecar so nginx picks up the new cert
+if command -v docker-compose >/dev/null 2>&1; then
+  ( cd "${REPO_ROOT}" && docker-compose restart localstack-tls ) || true
+elif command -v docker >/dev/null 2>&1; then
+  docker restart localstack-tls 2>/dev/null || true
+fi
+
+echo
+echo "[setup-azure-tls] done."
+echo "  Cert chain:   ${CERT_DIR}/cert.pem"
+echo "  Issuer:       mkcert local CA (installed in OS trust store)"
+echo
+echo "Verify:"
+echo "  curl -fs https://localhost:4569/metadata/endpoints?api-version=2022-09-01 | head -c 200"
+echo
+echo "Now \`terraform plan\` against the Azure example works without env vars."

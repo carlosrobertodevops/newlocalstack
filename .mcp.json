@@ -13,10 +13,10 @@
     },
     "terraform": {
       "command": "docker",
-      "args": ["run", "-i", "--rm", "hashicorp/terraform-mcp-server:latest"]
+      "args": ["run", "-i", "--rm", "hashicorp/terraform-mcp-server:0.5.2"]
     },
     "Azure": {
-      "type": "local",
+      "type": "stdio",
       "command": "npx",
       "args": ["-y", "@azure/mcp@latest", "server", "start"],
       "tools": ["*"]

@@ -116,6 +116,12 @@ coveralls:         		  ## Publish coveralls metrics
 start:             		  ## Manually start the local infrastructure for testing
 	($(VENV_RUN); python3 -m localstack.platform.runtime.main)
 
+setup-azure-tls:           ## Bootstrap Azure TLS (one-time per machine). Installs mkcert local CA into OS trust store and issues a cert for localstack-tls signed by it, so Go binaries (terraform-provider-azurerm) trust https://localhost:4569 without any per-cert step. Required because Go on macOS reads only the system Keychain — no SSL_CERT_FILE bypass exists.
+	@./bin/setup-azure-tls
+
+setup-azure-tls-uninstall: ## Remove mkcert local CA from OS trust store.
+	@./bin/setup-azure-tls --uninstall
+
 docker-run-tests:		  ## Initializes the test environment and runs the tests in a docker container
 	docker run -e LOCALSTACK_INTERNAL_TEST_COLLECT_METRIC=1 -e DOCKERHUB_USERNAME -e DOCKERHUB_PASSWORD --entrypoint= -v `pwd`/.git:/opt/code/localstack/.git -v `pwd`/requirements-test.txt:/opt/code/localstack/requirements-test.txt -v `pwd`/.test_durations:/opt/code/localstack/.test_durations -v `pwd`/tests/:/opt/code/localstack/tests/ -v `pwd`/dist/:/opt/code/localstack/dist/ -v `pwd`/target/:/opt/code/localstack/target/ -v /var/run/docker.sock:/var/run/docker.sock -v /tmp/localstack:/var/lib/localstack  \
 		$(IMAGE_NAME):$(DEFAULT_TAG) \

@@ -22,6 +22,10 @@ provider "google" {
   region  = "us-central1"
   zone    = "us-central1-a"
 
+  # Inline dummy bearer so the provider skips ADC / GOOGLE_APPLICATION_CREDENTIALS
+  # lookups. LocalStack's gateway accepts any bearer.
+  access_token = "localstack-dummy-token"
+
   storage_custom_endpoint                  = "http://localhost:4566/storage/v1/"
   pubsub_custom_endpoint                   = "http://localhost:4566/"
   firestore_custom_endpoint                = "http://localhost:4566/"
