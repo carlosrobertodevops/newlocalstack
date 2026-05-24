@@ -27,7 +27,7 @@ provider "google" {
   firestore_custom_endpoint                = "http://localhost:4566/"
   cloud_functions_custom_endpoint          = "http://localhost:4566/"
   iam_custom_endpoint                      = "http://localhost:4566/"
-  bigquery_custom_endpoint                 = "http://localhost:4566/bigquery/v2/"
+  big_query_custom_endpoint                = "http://localhost:4566/bigquery/v2/"
   secret_manager_custom_endpoint           = "http://localhost:4566/"
   kms_custom_endpoint                      = "http://localhost:4566/"
   cloud_tasks_custom_endpoint              = "http://localhost:4566/"
