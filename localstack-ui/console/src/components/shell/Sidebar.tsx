@@ -36,11 +36,24 @@ export function Sidebar() {
         </div>
       )}
       {error && (
-        <div className="px-2 text-xs text-red-500">
-          {(error as Error).message}
+        <div className="px-2 text-xs" style={{ color: "var(--sidebar-muted)" }}>
+          {t("sidebar.health_offline") ?? "health offline"}
         </div>
       )}
       <ul className="space-y-0.5 mb-2">
+        <li>
+          <Link
+            to="/overview"
+            params={{}}
+            className="group flex items-center justify-between rounded-md px-2 py-1.5 sidebar-link font-semibold"
+            activeProps={{ className: "sidebar-link-active" }}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <ServiceIcon id="cloud" cloud={cloud} />
+              <span className="truncate">All Clouds Overview</span>
+            </span>
+          </Link>
+        </li>
         <li>
           <Link
             to={`/${cloud}/overview`}
@@ -51,6 +64,19 @@ export function Sidebar() {
             <span className="flex items-center gap-2 min-w-0">
               <ServiceIcon id="cloud" cloud={cloud} />
               <span className="truncate">Overview</span>
+            </span>
+          </Link>
+        </li>
+        <li>
+          <Link
+            to={`/${cloud}/stack`}
+            params={{}}
+            className="group flex items-center justify-between rounded-md px-2 py-1.5 sidebar-link font-medium"
+            activeProps={{ className: "sidebar-link-active" }}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <ServiceIcon id="cloud" cloud={cloud} />
+              <span className="truncate">Stack (Em ação)</span>
             </span>
           </Link>
         </li>

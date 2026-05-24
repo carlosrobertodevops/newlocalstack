@@ -431,3 +431,54 @@ def transcribe():
 
     provider = TranscribeProvider()
     return Service.for_provider(provider, dispatch_table_factory=MotoFallbackDispatcher)
+
+
+# ---------------------------------------------------------------------------
+# Pure Moto-backed services (no native provider yet, full passthrough).
+# Adding these here lifts the "license upgrade required" 501 gate by giving
+# the catalog a registered provider whose dispatch table is just MotoFallback.
+# ---------------------------------------------------------------------------
+
+
+@aws_provider()
+def ecr():
+    from localstack.aws.api.ecr import EcrApi
+    from localstack.aws.services.moto import MotoFallbackDispatcher
+
+    class _MotoEcrProvider(EcrApi):
+        pass
+
+    return Service.for_provider(_MotoEcrProvider(), dispatch_table_factory=MotoFallbackDispatcher)
+
+
+@aws_provider()
+def ecs():
+    from localstack.aws.api.ecs import EcsApi
+    from localstack.aws.services.moto import MotoFallbackDispatcher
+
+    class _MotoEcsProvider(EcsApi):
+        pass
+
+    return Service.for_provider(_MotoEcsProvider(), dispatch_table_factory=MotoFallbackDispatcher)
+
+
+@aws_provider()
+def eks():
+    from localstack.aws.api.eks import EksApi
+    from localstack.aws.services.moto import MotoFallbackDispatcher
+
+    class _MotoEksProvider(EksApi):
+        pass
+
+    return Service.for_provider(_MotoEksProvider(), dispatch_table_factory=MotoFallbackDispatcher)
+
+
+@aws_provider()
+def rds():
+    from localstack.aws.api.rds import RdsApi
+    from localstack.aws.services.moto import MotoFallbackDispatcher
+
+    class _MotoRdsProvider(RdsApi):
+        pass
+
+    return Service.for_provider(_MotoRdsProvider(), dispatch_table_factory=MotoFallbackDispatcher)

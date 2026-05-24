@@ -9,6 +9,8 @@ import { HomeIndex } from "@/routes/HomeIndex";
 import { AwsOverview } from "@/routes/aws/overview";
 import { AzureOverview } from "@/routes/azure/overview";
 import { GcpOverview } from "@/routes/gcp/overview";
+import { UnifiedOverview } from "@/routes/overview";
+import { AwsStack, AzureStack, GcpStack } from "@/routes/stack";
 import {
   S3List,
   SqsList,
@@ -79,6 +81,12 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   component: HomeIndex,
+});
+
+const unifiedOverviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "overview",
+  component: UnifiedOverview,
 });
 
 const cloudLayout = (path: "aws" | "azure" | "gcp") =>
@@ -281,11 +289,17 @@ const awsOverview = route(awsRoute, "overview", AwsOverview);
 const azureOverview = route(azureRoute, "overview", AzureOverview);
 const gcpOverview = route(gcpRoute, "overview", GcpOverview);
 
+const awsStack = route(awsRoute, "stack", AwsStack);
+const azureStack = route(azureRoute, "stack", AzureStack);
+const gcpStack = route(gcpRoute, "stack", GcpStack);
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  unifiedOverviewRoute,
   awsRoute.addChildren([
     awsIndex,
     awsOverview,
+    awsStack,
     s3,
     s3Detail,
     sqs,
@@ -316,6 +330,7 @@ const routeTree = rootRoute.addChildren([
   azureRoute.addChildren([
     azureIndex,
     azureOverview,
+    azureStack,
     azRgs,
     azSa,
     azVnet,
@@ -334,6 +349,7 @@ const routeTree = rootRoute.addChildren([
   gcpRoute.addChildren([
     gcpIndex,
     gcpOverview,
+    gcpStack,
     gcpStorage,
     gcpPubsub,
     gcpFirestore,
