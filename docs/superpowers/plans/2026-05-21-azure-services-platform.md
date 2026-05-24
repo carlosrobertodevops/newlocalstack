@@ -1083,3 +1083,35 @@ git commit -m "ci(azure): add manual azure alpha smoke workflow"
 - Runtime implementation decision is recorded before creating `localstack-core/localstack/azure`.
 - Azure tests use Azure markers, not AWS markers.
 - Existing AWS tests remain untouched.
+
+---
+
+## 2026-05-24 — Terraform parity milestone
+
+`terraform-provider-azurerm` v3.110+ now completes `plan` + `apply` against the in-repo Azure emulator without any real Azure subscription or `az login`. End-to-end resources confirmed: `azurerm_resource_group`, `azurerm_storage_account`, `azurerm_storage_container`.
+
+User-facing guide: [`docs/azure-terraform.md`](../../azure-terraform.md). Working Terraform module: [`examples/terraform/azure/main.tf`](../../../examples/terraform/azure/main.tf).
+
+**Changes delivered**
+
+- `/metadata/endpoints?api-version=2022-09-01` (`localstack-core/localstack/azure/gateway.py:49`) returns `name=AzureCloud`, `authentication.tenant=common`, `identityProvider=AAD`. Required so `go-azure-helpers` does NOT classify the response as Azure Stack and abort with *"The AzureRM Provider … does not support Azure Stack"*.
+- Microsoft Graph router (`localstack-core/localstack/azure/services/entra/graph_router.py`) gained the OData key-call routes `/v1.0/servicePrincipals(appId='<uuid>')` and `/v1.0/applications(appId='<uuid>')` alongside the existing `?$filter=appId eq '<uuid>'` shape. Object IDs are deterministic via `sha256(client_id)` truncated to a UUID layout.
+- Multi-cloud router (`localstack-core/localstack/aws/handlers/multi_cloud.py`): `_looks_like_azure_graph` strips `(` before matching, so OData function-call paths route to Azure instead of being misread as the S3 bucket `v1.0`.
+- ARM router (`localstack-core/localstack/azure/arm_router.py`) added: `/subscriptions`, `/tenants`, `/subscriptions/<id>/{locations,providers,...}`, `register`/`unregister`, `resource_action` (`listKeys`), `sub_resource` (`fileServices/default`, `blobServices/default`, `queueServices/default`, `tableServices/default`).
+- ARM serializers (`localstack-core/localstack/azure/arm_serializers.py`) inject `properties.primaryEndpoints`/`secondaryEndpoints`, `sku`, `kind`, `identity` on storage account responses. Without those the azurerm provider failed with `model.Properties.PrimaryEndpoints was nil`.
+- Storage data plane: host-based routing `<account>.blob.core.windows.net` via the TLS sidecar; `bin/azure-register-host <account>` writes the six `/etc/hosts` entries (`blob`, `queue`, `table`, `file`, `dfs`, `z13.web`).
+- `docker-compose.yml` binds `127.0.0.1:443 → 4569` on `localstack-tls`. Required because `hashicorp/go-azure-sdk` parses storage account IDs from blob endpoints and rejects URLs that include a non-443 port.
+- TLS sidecar cert SAN list (`bin/setup-azure-tls`) covers `*.blob/queue/table/file/dfs/z13.web.core.windows.net`, `*.vault.azure.net`, `*.documents.azure.com`, `*.azurewebsites.net`, plus `management.azure.com`, `login.microsoftonline.com`, `graph.microsoft.com`. `mkcert -install` puts the root CA in the OS trust store so Go's TLS stack works without `SSL_CERT_FILE`.
+- `examples/terraform/azure/main.tf` is now fully self-contained — dummy creds inline, `use_cli=use_msi=use_oidc=false`, `skip_provider_registration=true`, `metadata_host = "localhost:4569"`.
+
+**References**
+
+- User-facing guide: `docs/azure-terraform.md`
+- Helper scripts: `bin/setup-azure-tls`, `bin/azure-register-host`, `bin/docker-sync.sh`
+- Architecture notes in `CLAUDE.md` § *Azure cloud emulation*
+
+**Next gaps**
+
+- Queue / table / file data plane CRUD beyond service properties (`?restype=service&comp=properties`) and listing.
+- Blob upload/download parity with Azurite for non-trivial workloads.
+- Real OAuth signature validation on the token router.

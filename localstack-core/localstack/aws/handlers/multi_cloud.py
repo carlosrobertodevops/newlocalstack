@@ -85,11 +85,12 @@ _GCP_V1_PROJECT_SEGS = (
 
 def _looks_like_azure_graph(path: str) -> bool:
     # Match `/v1.0/<collection>` and `/beta/<collection>` (Microsoft Graph).
+    # Strip OData function-call syntax: `servicePrincipals(appId='...')` → `servicePrincipals`.
     for prefix in ("/v1.0/", "/beta/"):
         if not path.startswith(prefix):
             continue
         rest = path[len(prefix):]
-        head = rest.split("/", 1)[0].split("?", 1)[0]
+        head = rest.split("/", 1)[0].split("?", 1)[0].split("(", 1)[0]
         if head in _AZURE_GRAPH_COLLECTIONS:
             return True
     return False

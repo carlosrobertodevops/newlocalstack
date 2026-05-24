@@ -70,6 +70,38 @@ docker-compose up         # local dev stack from repo
 - For ordering: `SortingTransformer` from `localstack.tooling.testing.snapshots.transformer`.
 - Refresh against real AWS with `SNAPSHOT_UPDATE=1 TEST_TARGET=AWS_CLOUD`.
 
+## Azure cloud emulation
+
+Experimental Azure support lives under `localstack-core/localstack/azure/`. Reachable through the shared multi-cloud gateway (`localstack-core/localstack/aws/handlers/multi_cloud.py`) and a TLS sidecar (`localstack-tls` in `docker-compose.yml`, ports `4569` + `443`).
+
+**Module layout:**
+
+- `azure/gateway.py` — `AzureGateway` mounts every router. Also serves `/metadata/endpoints?api-version=2022-09-01`.
+- `azure/arm_router.py` — ARM control plane. Routes: `/subscriptions`, `/tenants`, `/subscriptions/<id>/{locations,providers,resourceGroups,...}`, `register`/`unregister`, `resource_action` (`listKeys`), `sub_resource` (`fileServices/default`, `blobServices/default`, `queueServices/default`, `tableServices/default`).
+- `azure/arm_serializers.py` — populates `properties.primaryEndpoints`/`secondaryEndpoints` so `terraform-provider-azurerm` never sees `nil`.
+- `azure/spec.py`, `azure/stores.py` — service spec registry + per-account/region state.
+- `azure/services/storage/{blob,queue}_router.py` — data plane (`?restype=service&comp=properties`, `comp=list`, container/queue CRUD).
+- `azure/services/entra/token_router.py` — OAuth2 `/oauth2/v2.0/token` (Entra/AAD).
+- `azure/services/entra/graph_router.py` — Microsoft Graph (`/v1.0/me`, `/v1.0/servicePrincipals`, `/v1.0/applications`). Supports both `?$filter=appId eq '<uuid>'` and OData key-call `(appId='<uuid>')`. Object IDs derived via sha256(client_id).
+
+**Metadata endpoint.** `/metadata/endpoints` MUST return `name=AzureCloud`, `authentication.tenant=common`, `identityProvider=AAD`. Any other shape triggers `terraform-provider-azurerm`'s "Azure Stack" rejection in go-azure-helpers and the provider refuses to load.
+
+**Multi-cloud routing.** `multi_cloud.py` decides per request:
+
+- `_looks_like_azure_graph(path)` — strips `(` so OData function-call paths route to Azure (else `/v1.0/servicePrincipals(appId='...')` is misread as S3 bucket `v1.0`).
+- `_looks_like_azure_storage_dataplane(path, query)` — `?restype=…&comp=…` queries with a single-segment path go to the Azure storage routers.
+- Host suffix match (`*.blob.core.windows.net` etc) routes to Azure.
+
+**Local TLS + DNS.**
+
+- `make setup-azure-tls` (script `bin/setup-azure-tls`) — installs mkcert root CA system-wide, issues a cert with SANs covering `*.blob/queue/table/file/dfs/z13.web.core.windows.net`, `*.vault.azure.net`, `*.documents.azure.com`, `*.azurewebsites.net`, `management.azure.com`, `login.microsoftonline.com`, `graph.microsoft.com`. Go's TLS stack then trusts the sidecar without `SSL_CERT_FILE`.
+- `bin/azure-register-host <account>` — sudo /etc/hosts entries mapping `<account>.{blob,queue,table,file,dfs,z13.web}.core.windows.net` → `127.0.0.1`. Required because `hashicorp/go-azure-sdk` hardcodes the `core.windows.net` suffix and rejects URLs with a non-443 port.
+- `docker-compose.yml` binds `127.0.0.1:443 → 4569` on `localstack-tls` so storage data plane works without a port suffix.
+
+**Terraform example.** `examples/terraform/azure/main.tf` is fully self-contained: dummy creds, `use_cli=use_msi=use_oidc=false`, `metadata_host = "localhost:4569"`, `skip_provider_registration=true`. Currently green for `azurerm_resource_group`, `azurerm_storage_account`, `azurerm_storage_container`.
+
+User-facing guide: `docs/azure-terraform.md`.
+
 ## Conventions
 
 - `localstack-core/localstack/__init__.py` must NOT exist — `make lint` aborts if it does (breaks namespace packaging).

@@ -139,6 +139,16 @@ class GraphRouter:
             items = [_application(app_id)] if app_id else []
             return _json_response(_odata_list("applications", items))
 
+        # OData key-lookup syntax used by hashicorp/go-azure-sdk:
+        # GET /servicePrincipals(appId='<uuid>')  → returns the matching SP directly
+        m = re.match(r"^/servicePrincipals\(appId='(?P<app_id>[^']+)'\)$", path)
+        if m:
+            return _json_response(_service_principal(m.group("app_id")))
+
+        m = re.match(r"^/applications\(appId='(?P<app_id>[^']+)'\)$", path)
+        if m:
+            return _json_response(_application(m.group("app_id")))
+
         # Single-object lookups like /servicePrincipals/{id}
         m = re.match(r"^/servicePrincipals/(?P<oid>[^/]+)$", path)
         if m:
