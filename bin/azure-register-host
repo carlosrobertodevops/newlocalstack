@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Registers /etc/hosts entries for a storage account so the azurerm
+# provider can reach `<account>.{blob,queue,table,file,dfs,z13.web}.core.windows.net`
+# at 127.0.0.1 (the TLS sidecar on port 443).
+#
+# Usage:
+#   bin/azure-register-host <account_name>            # add
+#   bin/azure-register-host <account_name> --remove   # remove
+#
+# Requires sudo (writes to /etc/hosts).
+set -euo pipefail
+
+if [ $# -lt 1 ]; then
+  echo "usage: $0 <storage-account-name> [--remove]" >&2
+  exit 2
+fi
+
+ACCOUNT="$1"
+shift || true
+ACTION="add"
+if [ "${1:-}" = "--remove" ] || [ "${1:-}" = "-r" ]; then
+  ACTION="remove"
+fi
+
+HOSTS=(
+  "${ACCOUNT}.blob.core.windows.net"
+  "${ACCOUNT}.queue.core.windows.net"
+  "${ACCOUNT}.table.core.windows.net"
+  "${ACCOUNT}.file.core.windows.net"
+  "${ACCOUNT}.dfs.core.windows.net"
+  "${ACCOUNT}.z13.web.core.windows.net"
+)
+MARKER="# localstack-azure ${ACCOUNT}"
+
+if [ "${ACTION}" = "remove" ]; then
+  echo "[azure-register-host] removing /etc/hosts entries for ${ACCOUNT} (sudo required)"
+  sudo sed -i.bak "/${MARKER}\$/d" /etc/hosts
+  echo "  removed."
+  exit 0
+fi
+
+# Build block
+BLOCK=""
+for h in "${HOSTS[@]}"; do
+  BLOCK="${BLOCK}127.0.0.1 ${h} ${MARKER}"$'\n'
+done
+
+# Idempotent: skip if marker already present
+if grep -q "${MARKER}$" /etc/hosts 2>/dev/null; then
+  echo "[azure-register-host] ${ACCOUNT} already registered. Re-applying."
+  sudo sed -i.bak "/${MARKER}\$/d" /etc/hosts
+fi
+
+echo "[azure-register-host] adding /etc/hosts entries (sudo required):"
+for h in "${HOSTS[@]}"; do
+  echo "  127.0.0.1  ${h}"
+done
+
+printf '%s' "${BLOCK}" | sudo tee -a /etc/hosts >/dev/null
+
+echo
+echo "Verify with: dscacheutil -q host -a name ${ACCOUNT}.blob.core.windows.net"
+echo "(or: getent hosts ${ACCOUNT}.blob.core.windows.net on Linux)"
+echo
+echo "Done. terraform apply now resolves storage hosts via 127.0.0.1:443 → sidecar."
