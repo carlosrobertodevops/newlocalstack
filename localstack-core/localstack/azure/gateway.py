@@ -47,32 +47,26 @@ def _not_found() -> Response:
 
 
 def _arm_metadata_endpoints(endpoint: str) -> Response:
+    # Mirror the real `management.azure.com/metadata/endpoints?api-version=2022-09-01`
+    # schema. The azurerm provider's `IsAzureStack()` check in go-azure-sdk treats
+    # any non-canonical `name` value (and certain URL/field shapes) as Azure Stack,
+    # which the provider refuses to talk to. Use `name = "AzureCloud"` so the
+    # provider classifies us as the public cloud and proceeds normally.
     body = {
-        "galleryEndpoint": endpoint,
-        "graphEndpoint": endpoint,
-        "portalEndpoint": endpoint,
+        "portal": endpoint,
         "authentication": {
             "loginEndpoint": endpoint,
             "audiences": [endpoint],
-            "tenant": "localstack-tenant",
+            # Must be the literal "common" — go-azure-sdk's IsAzureStack()
+            # treats any other tenant value as Azure Stack and refuses to load.
+            # See: hashicorp/go-azure-sdk sdk/environments/azure_stack.go
+            "tenant": "common",
             "identityProvider": "AAD",
         },
-        "graph": endpoint,
-        "graphAudience": endpoint,
-        "msGraph": endpoint,
-        "appInsightsResourceId": endpoint,
-        "appInsightsTelemetryChannelResourceId": endpoint,
-        "synapseAnalyticsResourceId": endpoint,
-        "logAnalyticsResourceId": endpoint,
-        "ossrDbmsResourceId": endpoint,
-        "microsoftGraphResourceId": endpoint,
         "media": endpoint,
-        "attestationResourceId": endpoint,
-        "batch": endpoint,
-        "resourceManager": endpoint,
-        "vmImageAliasDoc": endpoint,
-        "sqlManagement": endpoint,
-        "activeDirectoryDataLake": endpoint,
+        "graphAudience": endpoint,
+        "graph": endpoint,
+        "name": "AzureCloud",
         "suffixes": {
             "azureDataLakeStoreFileSystem": "azuredatalakestore.net",
             "acrLoginServer": "azurecr.io",
@@ -88,8 +82,19 @@ def _arm_metadata_endpoints(endpoint: str) -> Response:
             "synapseAnalytics": ".dev.azuresynapse.net",
             "attestationEndpoint": ".attest.azure.net",
         },
-        "name": "LocalStack",
-        "type": "Microsoft.Azure",
+        "batch": endpoint,
+        "resourceManager": endpoint,
+        "vmImageAliasDoc": endpoint,
+        "activeDirectoryDataLakeResourceId": endpoint,
+        "sqlManagement": endpoint,
+        "microsoftGraphResourceId": endpoint,
+        "appInsightsResourceId": endpoint,
+        "appInsightsTelemetryChannelResourceId": endpoint,
+        "synapseAnalyticsResourceId": endpoint,
+        "logAnalyticsResourceId": endpoint,
+        "ossrDbmsResourceId": endpoint,
+        "attestationResourceId": endpoint,
+        "gallery": endpoint,
     }
     return Response(json.dumps(body), status=200, mimetype="application/json")
 
@@ -124,8 +129,17 @@ class AzureGateway:
     def __call__(self, environ, start_response):
         request = Request(environ)
         if request.path == "/metadata/endpoints":
-            scheme = environ.get("wsgi.url_scheme", "http")
-            endpoint = f"{scheme}://{request.host}"
+            # When the request arrives via the TLS sidecar (nginx on :4569),
+            # honor X-Forwarded-Proto. If the upstream stripped the port from
+            # the Host header, restore it so the emitted endpoint URLs are
+            # actually reachable by the caller (azurerm OAuth token POST etc).
+            scheme = environ.get(
+                "HTTP_X_FORWARDED_PROTO", environ.get("wsgi.url_scheme", "http")
+            )
+            host = request.host or "localhost"
+            if ":" not in host:
+                host = f"{host}:4569" if scheme == "https" else f"{host}:4566"
+            endpoint = f"{scheme}://{host}"
             return _arm_metadata_endpoints(endpoint)(environ, start_response)
         target, rewrite = self._select_router(request)
         if target is None:

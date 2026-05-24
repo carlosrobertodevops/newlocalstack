@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Container-side terraform wrapper for LocalStack multi-cloud.
+#
+# Runs `terraform <args>` inside hashicorp/terraform image with:
+#   - SSL trust for the project-shipped self-signed cert (localstack-tls/certs/cert.pem)
+#   - Network routing so localhost:4566/4569 from inside the container reach the host
+#   - Dummy creds preconfigured for aws, azurerm, google providers
+#
+# This is the project-side fix for the host-trust problem: Go on macOS will not
+# read SSL_CERT_FILE for HTTPS verification, so we move the terraform process
+# into a Linux container where SSL_CERT_FILE / appended CA bundle works.
+#
+# Usage (from any examples/terraform/<cloud>/ directory):
+#   bin/tf init
+#   bin/tf plan
+#   bin/tf apply -auto-approve
+#   bin/tf destroy -auto-approve
+#
+# No host-side mkcert / sudo / env file needed.
+set -euo pipefail
+
+REPO_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]:-$0}" )/.." && pwd )"
+CERT="${REPO_ROOT}/localstack-tls/certs/cert.pem"
+TF_IMAGE="${TF_IMAGE:-hashicorp/terraform:1.9}"
+
+if [ ! -f "${CERT}" ]; then
+  echo "ERROR: ${CERT} not found. Generate certs (see localstack-tls/README.md)." >&2
+  exit 1
+fi
+
+TTY_FLAG=()
+[ -t 0 ] && [ -t 1 ] && TTY_FLAG=(-it)
+
+# `--add-host=localhost:host-gateway` makes `localhost` inside the container
+# resolve to the docker host's gateway IP, where LocalStack's :4566 (HTTP) and
+# nginx-tls :4569 (HTTPS) are published. The cert's CN=localhost SAN matches.
+exec docker run --rm "${TTY_FLAG[@]}" \
+  --add-host=localhost:host-gateway \
+  --add-host=management.azure.com:host-gateway \
+  --add-host=login.microsoftonline.com:host-gateway \
+  -v "${CERT}:/tmp/extra-ca.crt:ro" \
+  -v "${PWD}:/work" \
+  -w /work \
+  -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-test}" \
+  -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-test}" \
+  -e AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-us-east-1}" \
+  -e ARM_CLIENT_ID="${ARM_CLIENT_ID:-00000000-0000-0000-0000-000000000000}" \
+  -e ARM_CLIENT_SECRET="${ARM_CLIENT_SECRET:-dummy-secret}" \
+  -e ARM_TENANT_ID="${ARM_TENANT_ID:-00000000-0000-0000-0000-000000000000}" \
+  -e ARM_SUBSCRIPTION_ID="${ARM_SUBSCRIPTION_ID:-00000000-0000-0000-0000-000000000000}" \
+  -e ARM_SKIP_PROVIDER_REGISTRATION=true \
+  -e ARM_METADATA_HOSTNAME="${ARM_METADATA_HOSTNAME:-localhost:4569}" \
+  -e GOOGLE_OAUTH_ACCESS_TOKEN="${GOOGLE_OAUTH_ACCESS_TOKEN:-localstack-dummy-token}" \
+  -e GOOGLE_PROJECT="${GOOGLE_PROJECT:-localstack-project}" \
+  --entrypoint /bin/sh \
+  "${TF_IMAGE}" \
+  -c 'cat /tmp/extra-ca.crt >> /etc/ssl/certs/ca-certificates.crt 2>/dev/null || true; exec terraform "$@"' \
+  -- "$@"
