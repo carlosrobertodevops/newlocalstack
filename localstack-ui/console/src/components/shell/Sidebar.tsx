@@ -50,7 +50,7 @@ export function Sidebar() {
           >
             <span className="flex items-center gap-2 min-w-0">
               <ServiceIcon id="cloud" cloud={cloud} />
-              <span className="truncate">All Clouds Overview</span>
+              <span className="truncate">{t("sidebar.all_clouds_overview")}</span>
             </span>
           </Link>
         </li>
@@ -63,7 +63,7 @@ export function Sidebar() {
           >
             <span className="flex items-center gap-2 min-w-0">
               <ServiceIcon id="cloud" cloud={cloud} />
-              <span className="truncate">Overview</span>
+              <span className="truncate">{t("sidebar.overview")}</span>
             </span>
           </Link>
         </li>
@@ -76,7 +76,7 @@ export function Sidebar() {
           >
             <span className="flex items-center gap-2 min-w-0">
               <ServiceIcon id="cloud" cloud={cloud} />
-              <span className="truncate">Stack (Em ação)</span>
+              <span className="truncate">{t("sidebar.stack")}</span>
             </span>
           </Link>
         </li>
@@ -104,7 +104,7 @@ export function Sidebar() {
                   <span className="truncate">{s.label}</span>
                 </span>
                 <Badge variant={variant} className="text-[10px] py-0">
-                  {state}
+                  {t(`state.${state}`)}
                 </Badge>
               </Link>
             </li>

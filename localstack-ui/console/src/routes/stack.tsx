@@ -8,6 +8,7 @@ import { azureApi } from "@/lib/api/azure";
 import { gcpApi } from "@/lib/api/gcp";
 import { stackApi } from "@/lib/api/stack";
 import { useCloud } from "@/lib/cloud-context";
+import { useI18n } from "@/lib/i18n";
 import { SERVICES_BY_CLOUD } from "@/routes/registry";
 import type { CloudName } from "@/lib/skins";
 
@@ -220,6 +221,7 @@ function ConfirmModal({
   onCancel,
   onConfirm,
 }: ConfirmModalProps) {
+  const { t } = useI18n();
   if (!open) return null;
   return (
     <div
@@ -246,7 +248,7 @@ function ConfirmModal({
             onClick={onCancel}
             disabled={busy}
           >
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -258,7 +260,7 @@ function ConfirmModal({
             onClick={onConfirm}
             disabled={busy}
           >
-            {busy ? "Aguarde…" : confirmLabel}
+            {busy ? t("common.wait") : confirmLabel}
           </button>
         </div>
       </div>
@@ -293,6 +295,7 @@ function StackRow({
   path,
   onRequestRemove,
 }: RowProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const count = items.length;
   const scope = CLOUD_SCOPE[cloud];
@@ -320,16 +323,16 @@ function StackRow({
             </span>
           </div>
         </button>
-        <span className="text-xs text-muted-foreground hidden sm:inline">1 region</span>
-        <span className="text-xs text-muted-foreground hidden md:inline mr-2">1 account</span>
+        <span className="text-xs text-muted-foreground hidden sm:inline">{t("stack.one_region")}</span>
+        <span className="text-xs text-muted-foreground hidden md:inline mr-2">{t("stack.one_account")}</span>
         <button
           type="button"
           onClick={() => onRequestRemove(serviceId, serviceLabel)}
           className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border border-red-500/30 text-red-600 hover:bg-red-500/10 transition"
-          title={`Remover todos os recursos de ${serviceLabel}`}
-          aria-label={`Remover todos os recursos de ${serviceLabel}`}
+          title={t("stack.remove_tooltip", { service: serviceLabel })}
+          aria-label={t("stack.remove_tooltip", { service: serviceLabel })}
         >
-          <Trash2 size={12} /> Remover
+          <Trash2 size={12} /> {t("stack.remove")}
         </button>
       </div>
       {open && count > 0 && (
@@ -348,7 +351,7 @@ function StackRow({
             to={path}
             className="text-xs text-primary hover:underline inline-block mt-2"
           >
-            Open {serviceLabel} →
+            {t("stack.open_service", { service: serviceLabel })}
           </Link>
         </div>
       )}
@@ -361,6 +364,7 @@ function StackRow({
 // ---------------------------------------------------------------------------
 
 function CloudStack({ cloud }: { cloud: CloudName }) {
+  const { t } = useI18n();
   const { subscription, project } = useCloud();
   const services = SERVICES_BY_CLOUD[cloud];
   const [tick, setTick] = useState(0);
@@ -405,8 +409,12 @@ function CloudStack({ cloud }: { cloud: CloudName }) {
     try {
       await stackApi.remove(cloud, remoteServiceId(cloud, removeTarget.id));
     } catch (err) {
-      // surface as alert; full toast lib not wired
-      window.alert(`Falha ao remover ${removeTarget.label}: ${(err as Error).message}`);
+      window.alert(
+        t("stack.remove_error", {
+          service: removeTarget.label,
+          error: (err as Error).message,
+        }),
+      );
     } finally {
       setBusy(false);
       setRemoveTarget(null);
@@ -419,7 +427,9 @@ function CloudStack({ cloud }: { cloud: CloudName }) {
     try {
       await stackApi.resetAll(cloud);
     } catch (err) {
-      window.alert(`Falha ao limpar stack: ${(err as Error).message}`);
+      window.alert(
+        t("stack.reset_error", { error: (err as Error).message }),
+      );
     } finally {
       setBusy(false);
       setResetOpen(false);
@@ -433,14 +443,13 @@ function CloudStack({ cloud }: { cloud: CloudName }) {
         <div>
           <h1 className="text-2xl font-semibold flex items-center gap-2">
             <ServiceIcon id="cloud" cloud={cloud} />
-            {CLOUD_LABEL[cloud]} · Stack Overview
+            {t("stack.title", { cloud: CLOUD_LABEL[cloud] })}
             <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-700 dark:text-violet-300 font-medium">
-              Em ação
+              {t("state.in_action")}
             </span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            {total} resources across {rows.length} services. Created via CLI,
-            Terraform, Serverless Framework or this console.
+            {t("stack.subtitle", { total, services: rows.length })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -449,25 +458,23 @@ function CloudStack({ cloud }: { cloud: CloudName }) {
             onClick={refreshAll}
             className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border bg-card hover:bg-muted transition"
           >
-            <RefreshCw size={12} /> Refresh
+            <RefreshCw size={12} /> {t("stack.refresh")}
           </button>
           <button
             type="button"
             onClick={() => setResetOpen(true)}
             disabled={total === 0}
             className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
-            title={`Limpar todos serviços ativos de ${CLOUD_LABEL[cloud]}`}
+            title={t("stack.clear_tooltip", { cloud: CLOUD_LABEL[cloud] })}
           >
-            <Trash2 size={12} /> Limpar Stack
+            <Trash2 size={12} /> {t("stack.clear")}
           </button>
         </div>
       </header>
 
       {rows.length === 0 ? (
-        <div className="text-sm text-muted-foreground border rounded-md p-6 bg-card text-center">
-          No {CLOUD_LABEL[cloud]} resources detected yet.
-          <br />
-          Create some via CLI, Terraform, Serverless Framework or the console — they'll appear here.
+        <div className="text-sm text-muted-foreground border rounded-md p-6 bg-card text-center whitespace-pre-line">
+          {t("stack.empty", { cloud: CLOUD_LABEL[cloud] })}
         </div>
       ) : (
         <div className="space-y-2">
@@ -490,9 +497,12 @@ function CloudStack({ cloud }: { cloud: CloudName }) {
 
       <ConfirmModal
         open={!!removeTarget}
-        title={`Remover ${removeTarget?.label ?? ""}`}
-        message={`Esta ação remove TODOS os recursos do serviço ${removeTarget?.label ?? ""} em ${CLOUD_LABEL[cloud]}. É irreversível e não afeta os outros provedores.`}
-        confirmLabel="Remover"
+        title={t("stack.remove_title", { service: removeTarget?.label ?? "" })}
+        message={t("stack.remove_message", {
+          service: removeTarget?.label ?? "",
+          cloud: CLOUD_LABEL[cloud],
+        })}
+        confirmLabel={t("stack.remove")}
         destructive
         busy={busy}
         onCancel={() => setRemoveTarget(null)}
@@ -501,9 +511,9 @@ function CloudStack({ cloud }: { cloud: CloudName }) {
 
       <ConfirmModal
         open={resetOpen}
-        title={`Limpar Stack ${CLOUD_LABEL[cloud]}`}
-        message={`Esta ação remove TODOS os recursos ativos em ${CLOUD_LABEL[cloud]} (reset completo).\n\nNão afeta os outros provedores. Ação irreversível.`}
-        confirmLabel="Confirmar reset"
+        title={t("stack.clear_title", { cloud: CLOUD_LABEL[cloud] })}
+        message={t("stack.clear_message", { cloud: CLOUD_LABEL[cloud] })}
+        confirmLabel={t("common.confirm_reset")}
         destructive
         busy={busy}
         onCancel={() => setResetOpen(false)}

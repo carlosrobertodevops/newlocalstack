@@ -15,6 +15,7 @@ import {
   closeIacDrawer,
   setIacSnippet,
 } from "@/lib/iac-drawer-store";
+import { useI18n } from "@/lib/i18n";
 
 interface IacResponse {
   session_id: string;
@@ -42,6 +43,7 @@ async function postIac(
 }
 
 export function IacInlineDrawer() {
+  const { t } = useI18n();
   const { open, tool, snippet, title } = useIacDrawer();
   const [running, setRunning] = useState(false);
   const [stdout, setStdout] = useState("");
@@ -49,7 +51,7 @@ export function IacInlineDrawer() {
 
   async function copy() {
     await navigator.clipboard.writeText(snippet);
-    toast.success("Copied to clipboard");
+    toast.success(t("common.copied"));
   }
 
   async function preview() {
@@ -83,9 +85,9 @@ export function IacInlineDrawer() {
       setStdout(r.stdout);
       setStderr(r.stderr);
       if (r.exit_code === 0) {
-        toast.success(`${action} ok (${r.duration_ms} ms)`);
+        toast.success(t("iac.success", { action, duration: r.duration_ms }));
       } else {
-        toast.error(`${action} failed (exit ${r.exit_code})`);
+        toast.error(t("iac.fail", { action, code: r.exit_code }));
       }
     } catch (e) {
       toast.error((e as Error).message);
@@ -98,10 +100,10 @@ export function IacInlineDrawer() {
     <Sheet open={open} onOpenChange={(o) => !o && closeIacDrawer()}>
       <SheetContent side="right" className="flex flex-col gap-3 max-w-2xl">
         <SheetHeader>
-          <SheetTitle>{title ?? "Infrastructure as Code"}</SheetTitle>
+          <SheetTitle>{title ?? t("iac.title")}</SheetTitle>
           <SheetDescription>
-            Tool: <span className="font-mono">{tool}</span> · Provider configured
-            to New LocalStack
+            {t("iac.tool_label")}: <span className="font-mono">{tool}</span> ·{" "}
+            {t("iac.provider_note")}
           </SheetDescription>
         </SheetHeader>
 
@@ -121,10 +123,10 @@ export function IacInlineDrawer() {
 
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={copy}>
-            Copy
+            {t("iac.copy")}
           </Button>
           <Button variant="outline" size="sm" onClick={preview}>
-            Preview
+            {t("iac.preview")}
           </Button>
           <Button
             variant="outline"
@@ -132,7 +134,7 @@ export function IacInlineDrawer() {
             onClick={() => run("plan")}
             disabled={running}
           >
-            Plan
+            {t("iac.plan")}
           </Button>
           <Button
             size="sm"
@@ -140,7 +142,7 @@ export function IacInlineDrawer() {
             disabled={running}
             variant="skin"
           >
-            Apply
+            {t("iac.apply")}
           </Button>
           <Button
             size="sm"
@@ -148,7 +150,7 @@ export function IacInlineDrawer() {
             onClick={() => run("destroy")}
             disabled={running}
           >
-            Destroy
+            {t("iac.destroy")}
           </Button>
         </div>
 
@@ -159,12 +161,12 @@ export function IacInlineDrawer() {
           </TabsList>
           <TabsContent value="stdout" className="flex-1 min-h-0">
             <pre className="h-full overflow-auto text-xs bg-muted p-3 rounded">
-              {stdout || "(empty)"}
+              {stdout || t("iac.empty")}
             </pre>
           </TabsContent>
           <TabsContent value="stderr" className="flex-1 min-h-0">
             <pre className="h-full overflow-auto text-xs bg-muted p-3 rounded">
-              {stderr || "(empty)"}
+              {stderr || t("iac.empty")}
             </pre>
           </TabsContent>
         </Tabs>

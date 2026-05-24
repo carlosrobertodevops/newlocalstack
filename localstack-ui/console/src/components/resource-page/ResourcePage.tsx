@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { openIacDrawer, type IacTool } from "@/lib/iac-drawer-store";
+import { useI18n } from "@/lib/i18n";
 import { Code2, RefreshCw } from "lucide-react";
 
 interface ResourcePageProps {
@@ -21,6 +22,7 @@ export function ResourcePage({
   iac,
   actions,
 }: ResourcePageProps) {
+  const { t } = useI18n();
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-start justify-between gap-3">
@@ -44,7 +46,10 @@ export function ResourcePage({
                 })
               }
             >
-              <Code2 className="h-4 w-4" /> Show as {iac.tool === "terraform" ? "Terraform" : "Serverless"}
+              <Code2 className="h-4 w-4" />{" "}
+              {t("resource.show_as", {
+                tool: iac.tool === "terraform" ? "Terraform" : "Serverless",
+              })}
             </Button>
           )}
           {onRefresh && (

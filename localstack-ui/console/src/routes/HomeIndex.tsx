@@ -57,7 +57,7 @@ export function HomeIndex() {
                       />
                       <span>{s.label}</span>
                     </CardTitle>
-                    <Badge variant={variant}>{state}</Badge>
+                    <Badge variant={variant}>{t(`state.${state}`)}</Badge>
                   </div>
                   <CardDescription className="text-xs">{s.id}</CardDescription>
                 </CardHeader>

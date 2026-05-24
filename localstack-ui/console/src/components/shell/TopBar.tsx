@@ -16,6 +16,7 @@ const CLOUDS: { id: CloudName; label: string }[] = [
 const LANGS: { id: Lang; label: string }[] = [
   { id: "en", label: "EN" },
   { id: "pt-BR", label: "PT-BR" },
+  { id: "es", label: "ES" },
 ];
 
 export function TopBar() {

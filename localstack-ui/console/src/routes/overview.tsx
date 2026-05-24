@@ -5,6 +5,7 @@ import { awsApi } from "@/lib/api/aws";
 import { azureApi } from "@/lib/api/azure";
 import { gcpApi } from "@/lib/api/gcp";
 import { useCloud } from "@/lib/cloud-context";
+import { useI18n } from "@/lib/i18n";
 import { SERVICES_BY_CLOUD } from "@/routes/registry";
 import type { CloudName } from "@/lib/skins";
 
@@ -125,6 +126,7 @@ async function fetchGcp(id: string, project: string): Promise<unknown[]> {
 const CLOUD_LABEL: Record<CloudName, string> = { aws: "AWS", azure: "Azure", gcp: "GCP" };
 
 export function UnifiedOverview() {
+  const { t } = useI18n();
   const { subscription, project } = useCloud();
   const all = (["aws", "azure", "gcp"] as CloudName[]).flatMap((cloud) =>
     SERVICES_BY_CLOUD[cloud].map((s) => ({ cloud, ...s })),
@@ -156,15 +158,18 @@ export function UnifiedOverview() {
   return (
     <div className="p-6 space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">Unified Overview · All Clouds</h1>
+        <h1 className="text-2xl font-semibold">{t("overview.title.unified")}</h1>
         <p className="text-sm text-muted-foreground">
-          Resources created via CLI (aws/az/gcloud), Terraform, Serverless Framework or the
-          New LocalStack Console. <strong>{grandTotal}</strong> resources total.
+          {t("overview.subtitle.unified", { total: grandTotal })}
         </p>
         <div className="flex gap-3 pt-2 text-xs">
           {(Object.keys(totalsByCloud) as CloudName[]).map((c) => (
             <span key={c} className="rounded-md border px-2 py-1">
-              <strong>{CLOUD_LABEL[c]}</strong>: {totalsByCloud[c]} resources · {liveByCloud[c]} live services
+              {t("overview.cloud_badge", {
+                cloud: CLOUD_LABEL[c],
+                total: totalsByCloud[c],
+                live: liveByCloud[c],
+              })}
             </span>
           ))}
         </div>
@@ -180,7 +185,7 @@ export function UnifiedOverview() {
               <ServiceIcon id="cloud" cloud={cloud} />
               {CLOUD_LABEL[cloud]}
               <span className="text-xs font-normal text-muted-foreground">
-                ({totalsByCloud[cloud]} resources)
+                {t("overview.cloud_section_count", { total: totalsByCloud[cloud] })}
               </span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -205,7 +210,7 @@ export function UnifiedOverview() {
                               : "bg-muted text-muted-foreground"
                         }`}
                       >
-                        {q.isLoading ? "…" : q.isError ? "err" : count}
+                        {q.isLoading ? "…" : q.isError ? t("state.err") : count}
                       </span>
                     </div>
                     {count > 0 && (
@@ -215,7 +220,11 @@ export function UnifiedOverview() {
                             {nameOf(it)}
                           </li>
                         ))}
-                        {count > 4 && <li className="text-[10px]">+ {count - 4} more</li>}
+                        {count > 4 && (
+                          <li className="text-[10px]">
+                            {t("overview.more_count", { count: count - 4 })}
+                          </li>
+                        )}
                       </ul>
                     )}
                   </Link>

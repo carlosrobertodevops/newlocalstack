@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { execCli, isAllowedCli, type Cli } from "@/lib/cli-bridge";
+import { useI18n } from "@/lib/i18n";
 import { TerminalSquare } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,6 +30,7 @@ function saveHistory(items: string[]) {
 }
 
 export function CloudShellButton() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const terminalRef = useRef<Terminal | null>(null);
@@ -49,9 +51,7 @@ export function CloudShellButton() {
     term.loadAddon(fit);
     term.open(containerRef.current);
     fit.fit();
-    term.writeln(
-      "\x1b[36m# New LocalStack Cloud Shell — aws | az | gcloud only\x1b[0m",
-    );
+    term.writeln(`\x1b[36m# ${t("shell.header_banner")}\x1b[0m`);
     terminalRef.current = term;
     fitRef.current = fit;
     const onResize = () => fit.fit();
@@ -70,7 +70,7 @@ export function CloudShellButton() {
     const tokens = line.split(/\s+/);
     const cli = tokens[0];
     if (!isAllowedCli(cli)) {
-      toast.error(`cli not allowed: ${cli}`);
+      toast.error(t("shell.cli_not_allowed", { cli }));
       return;
     }
     setCmd("");
@@ -113,12 +113,12 @@ export function CloudShellButton() {
         className="fixed bottom-3 right-3 z-40 bg-skin-accent text-black hover:bg-skin-accent/90 shadow"
         onClick={() => setOpen(true)}
       >
-        <TerminalSquare className="h-4 w-4" /> Cloud Shell
+        <TerminalSquare className="h-4 w-4" /> {t("shell.button")}
       </Button>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" className="flex flex-col gap-3">
           <SheetHeader>
-            <SheetTitle>Cloud Shell — bridge :4578 or in-container fallback</SheetTitle>
+            <SheetTitle>{t("shell.title")}</SheetTitle>
           </SheetHeader>
           <div
             ref={containerRef}
@@ -143,12 +143,12 @@ export function CloudShellButton() {
                   navigateHistory(1);
                 }
               }}
-              placeholder="aws s3 ls   |   az storage account list   |   gcloud projects list"
+              placeholder={t("shell.placeholder")}
               className="font-mono"
               autoFocus
             />
             <Button type="submit" variant="skin">
-              Run
+              {t("shell.run")}
             </Button>
           </form>
         </SheetContent>

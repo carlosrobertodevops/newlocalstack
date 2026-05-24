@@ -1,6 +1,7 @@
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { Badge } from "@/components/ui/badge";
 import { ServiceIcon } from "@/lib/service-icons";
+import { useI18n } from "@/lib/i18n";
 import type { CloudName } from "@/lib/skins";
 
 export function ProService({
@@ -14,21 +15,18 @@ export function ProService({
   label: string;
   reason?: string;
 }) {
+  const { t } = useI18n();
   return (
     <ResourcePage
       title={label}
-      description={
-        reason ??
-        "Backend not available in this LocalStack distribution. Requires LocalStack Pro or a future community provider."
-      }
+      description={reason ?? t("pro.description")}
     >
       <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
         <ServiceIcon id={id} cloud={cloud} style={{ width: 48, height: 48 }} />
         <div className="text-sm text-muted-foreground max-w-md">
-          {reason ??
-            "This service requires a paid provider tier. The UI is wired and ready — once the backend ships, it will work automatically."}
+          {reason ?? t("pro.reason")}
         </div>
-        <Badge variant="warn">pro / not yet available</Badge>
+        <Badge variant="warn">{t("state.not_yet_available")}</Badge>
       </div>
     </ResourcePage>
   );

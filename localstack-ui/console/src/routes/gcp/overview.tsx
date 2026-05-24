@@ -3,6 +3,7 @@ import { useQueries } from "@tanstack/react-query";
 import { ServiceIcon } from "@/lib/service-icons";
 import { gcpApi } from "@/lib/api/gcp";
 import { useCloud } from "@/lib/cloud-context";
+import { useI18n } from "@/lib/i18n";
 import { SERVICES_BY_CLOUD } from "@/routes/registry";
 
 function nameOf(item: unknown): string {
@@ -13,6 +14,7 @@ function nameOf(item: unknown): string {
 }
 
 export function GcpOverview() {
+  const { t } = useI18n();
   const { project } = useCloud();
   const services = SERVICES_BY_CLOUD.gcp;
 
@@ -74,11 +76,13 @@ export function GcpOverview() {
   return (
     <div className="p-6 space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">GCP · Overview</h1>
+        <h1 className="text-2xl font-semibold">{t("overview.title.cloud", { cloud: "GCP" })}</h1>
         <p className="text-sm text-muted-foreground">
-          Resources created via gcloud, Terraform google, Serverless or this console.
-          Project: <code className="text-xs">{project}</code>. Live total:{" "}
-          <strong>{totalResources}</strong> across <strong>{liveServices}</strong> services.
+          {t("overview.subtitle.gcp", {
+            scope: project,
+            total: totalResources,
+            services: liveServices,
+          })}
         </p>
       </header>
 
@@ -105,7 +109,7 @@ export function GcpOverview() {
                         : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  {q.isLoading ? "…" : q.isError ? "err" : count}
+                  {q.isLoading ? "…" : q.isError ? t("state.err") : count}
                 </span>
               </div>
               {count > 0 && (
@@ -115,7 +119,11 @@ export function GcpOverview() {
                       {nameOf(it)}
                     </li>
                   ))}
-                  {count > 5 && <li className="text-[10px]">+ {count - 5} more</li>}
+                  {count > 5 && (
+                    <li className="text-[10px]">
+                      {t("overview.more_count", { count: count - 5 })}
+                    </li>
+                  )}
                 </ul>
               )}
             </Link>

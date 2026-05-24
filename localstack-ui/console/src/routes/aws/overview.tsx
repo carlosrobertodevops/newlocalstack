@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useQueries } from "@tanstack/react-query";
 import { ServiceIcon } from "@/lib/service-icons";
 import { awsApi } from "@/lib/api/aws";
+import { useI18n } from "@/lib/i18n";
 import { SERVICES_BY_CLOUD } from "@/routes/registry";
 
 type Lister = () => Promise<unknown[]>;
@@ -50,6 +51,7 @@ function nameOf(item: unknown): string {
 }
 
 export function AwsOverview() {
+  const { t } = useI18n();
   const services = SERVICES_BY_CLOUD.aws;
   const queries = useQueries({
     queries: services.map((s) => ({
@@ -75,10 +77,9 @@ export function AwsOverview() {
   return (
     <div className="p-6 space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">AWS · Overview</h1>
+        <h1 className="text-2xl font-semibold">{t("overview.title.cloud", { cloud: "AWS" })}</h1>
         <p className="text-sm text-muted-foreground">
-          Resources created via CLI, Terraform, Serverless or this console.
-          Live total: <strong>{totalResources}</strong> across <strong>{liveServices}</strong> services.
+          {t("overview.subtitle.aws", { total: totalResources, services: liveServices })}
         </p>
       </header>
 
@@ -107,7 +108,7 @@ export function AwsOverview() {
                         : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  {loading ? "…" : err ? "err" : count}
+                  {loading ? "…" : err ? t("state.err") : count}
                 </span>
               </div>
               {count > 0 && (
@@ -117,7 +118,11 @@ export function AwsOverview() {
                       {nameOf(it)}
                     </li>
                   ))}
-                  {count > 5 && <li className="text-[10px]">+ {count - 5} more</li>}
+                  {count > 5 && (
+                    <li className="text-[10px]">
+                      {t("overview.more_count", { count: count - 5 })}
+                    </li>
+                  )}
                 </ul>
               )}
             </Link>
