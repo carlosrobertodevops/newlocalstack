@@ -774,6 +774,26 @@ class LocalstackResources(Router):
         self.add(Resource("/_localstack/clouds", CloudsListResource()))
         self.add(Resource("/_localstack/clouds/<cloud>/health", CloudHealthResource(SERVICE_PLUGINS)))
         self.add(Resource("/_localstack/clouds/<cloud>/info", CloudInfoResource()))
+
+        from localstack.aws.services._localstack_stack import (
+            CloudStackResetResource,
+            CloudStackResource,
+            CloudStackServiceResource,
+        )
+
+        self.add(Resource("/_localstack/clouds/<cloud>/stack", CloudStackResource()))
+        self.add(
+            Resource(
+                "/_localstack/clouds/<cloud>/stack/services/<service>",
+                CloudStackServiceResource(),
+            )
+        )
+        self.add(
+            Resource(
+                "/_localstack/clouds/<cloud>/stack/reset",
+                CloudStackResetResource(),
+            )
+        )
         self.add(Resource("/_localstack/console/cli", CliPassthroughResource()))
         self.add(Resource("/_localstack/console/iac", IacApplyResource()))
         self.add(Resource("/_localstack/console/iac/preview", IacPreviewResource()))
