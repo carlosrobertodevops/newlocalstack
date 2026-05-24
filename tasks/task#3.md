@@ -1,10 +1,7 @@
-# Funcionalidades do nosso New LocalStack para multi-clouds.md
+# Opção de remover serviços no console
 
-- Testar todas as funcionalidades com uso dos principais provedores: aws, azure e gcp.
-- Terraform
-- Serverless
-- Via Console do New LocalStack
-- via CLI de cada provedor
+- opção de remover todos os serviços (todos )
+- opção de remover cada um serviço (em seu próprio card)
 
 ## Suas expecilizações
 
@@ -16,11 +13,6 @@
 ## Implementar
 
 - Implementar, tudo com base no em nossas documentações aqui do Projeto.
-- O New LocalStack deve sempre funcionar de forma natural e como se fosse direto para os clouds, mas, emulando localmente, com:
-  - **Terraform**
-  - **Serverless**
-  - **Via Console do New LocalStack**
-  - **via CLI de cada provedor**
 - E que tenhamos uma opção no console na tela de "Stack (Em ação)" e em cada serviço em ação uma opção de remover. E também um botão CT vermelho com a oppção de limpar todos os serviços ativos, e que tenha uma mensagem de confirmação, como um resete geral, mas, para cada provider isoladamente.
 - Sempre use 5 ou mais subagentes expecializados.
 

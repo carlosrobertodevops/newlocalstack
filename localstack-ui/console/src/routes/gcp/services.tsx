@@ -15,6 +15,7 @@ import {
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { gcpApi } from "@/lib/api/gcp";
 import { useCloud } from "@/lib/cloud-context";
+import { useI18n } from "@/lib/i18n";
 import {
   genTerraformGcsBucket,
   genTerraformPubSubTopic,
@@ -22,6 +23,7 @@ import {
 
 export function StorageList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [name, setName] = useState("");
 
@@ -55,7 +57,7 @@ export function StorageList() {
       actions={
         <div className="flex items-end gap-2">
           <div>
-            <Label className="text-xs">Bucket</Label>
+            <Label className="text-xs">{t("col.bucket")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -69,22 +71,22 @@ export function StorageList() {
             disabled={!name || create.isPending}
             onClick={() => create.mutate()}
           >
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
     >
       {isLoading ? (
-        <div className="p-3 text-sm text-muted-foreground">loading…</div>
+        <div className="p-3 text-sm text-muted-foreground">{t("sidebar.loading")}</div>
       ) : !data || data.length === 0 ? (
-        <div className="p-3 text-sm text-muted-foreground">No buckets.</div>
+        <div className="p-3 text-sm text-muted-foreground">{t("common.empty")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Class</TableHead>
+              <TableHead>{t("col.name")}</TableHead>
+              <TableHead>{t("col.location")}</TableHead>
+              <TableHead>{t("col.class")}</TableHead>
               <TableHead className="w-20" />
             </TableRow>
           </TableHeader>
@@ -100,7 +102,7 @@ export function StorageList() {
                     variant="ghost"
                     onClick={() => del.mutate(b.name)}
                   >
-                    Delete
+                    {t("common.delete")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -114,6 +116,7 @@ export function StorageList() {
 
 export function PubSubList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [name, setName] = useState("");
 
@@ -147,7 +150,7 @@ export function PubSubList() {
       actions={
         <div className="flex items-end gap-2">
           <div>
-            <Label className="text-xs">Topic</Label>
+            <Label className="text-xs">{t("col.topic")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -161,36 +164,36 @@ export function PubSubList() {
             disabled={!name || create.isPending}
             onClick={() => create.mutate()}
           >
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
     >
       {isLoading ? (
-        <div className="p-3 text-sm text-muted-foreground">loading…</div>
+        <div className="p-3 text-sm text-muted-foreground">{t("sidebar.loading")}</div>
       ) : !data || data.length === 0 ? (
-        <div className="p-3 text-sm text-muted-foreground">No topics.</div>
+        <div className="p-3 text-sm text-muted-foreground">{t("common.empty")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>{t("col.name")}</TableHead>
               <TableHead className="w-20" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((t) => {
-              const short = t.name.split("/").pop() ?? t.name;
+            {data.map((tp) => {
+              const short = tp.name.split("/").pop() ?? tp.name;
               return (
-                <TableRow key={t.name}>
-                  <TableCell className="font-mono">{t.name}</TableCell>
+                <TableRow key={tp.name}>
+                  <TableCell className="font-mono">{tp.name}</TableCell>
                   <TableCell>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => del.mutate(short)}
                     >
-                      Delete
+                      {t("common.delete")}
                     </Button>
                   </TableCell>
                 </TableRow>

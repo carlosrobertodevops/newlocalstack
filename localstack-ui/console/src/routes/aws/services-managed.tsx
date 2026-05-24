@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { awsApi } from "@/lib/api/aws";
+import { useI18n } from "@/lib/i18n";
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ function err(e: unknown) {
 // ---------------- EKS ----------------
 export function EksList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["eks"],
     queryFn: awsApi.listEksClusters,
@@ -48,11 +50,11 @@ export function EksList() {
       actions={
         <div className="flex gap-2 items-end flex-wrap">
           <div>
-            <Label htmlFor="eks-n">Cluster name</Label>
+            <Label htmlFor="eks-n">{t("col.cluster_name")}</Label>
             <Input id="eks-n" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="eks-s">Subnet IDs (comma-sep)</Label>
+            <Label htmlFor="eks-s">{t("col.subnet_ids")}</Label>
             <Input
               id="eks-s"
               value={subnets}
@@ -61,7 +63,7 @@ export function EksList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -69,7 +71,7 @@ export function EksList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -88,7 +90,7 @@ export function EksList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -96,7 +98,7 @@ export function EksList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={2} className="text-center text-muted-foreground">
-                No clusters.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -109,6 +111,7 @@ export function EksList() {
 // ---------------- ECS ----------------
 export function EcsList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["ecs"],
     queryFn: awsApi.listEcsClusters,
@@ -129,11 +132,11 @@ export function EcsList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="ecs-n">Cluster name</Label>
+            <Label htmlFor="ecs-n">{t("col.cluster_name")}</Label>
             <Input id="ecs-n" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -141,7 +144,7 @@ export function EcsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ARN</TableHead>
+            <TableHead>{t("col.arn")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -171,7 +174,7 @@ export function EcsList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={2} className="text-center text-muted-foreground">
-                No clusters.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -184,6 +187,7 @@ export function EcsList() {
 // ---------------- RDS ----------------
 export function RdsList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["rds"],
     queryFn: awsApi.listDbInstances,
@@ -206,11 +210,11 @@ export function RdsList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="rds-id">Instance ID</Label>
+            <Label htmlFor="rds-id">{t("col.instance_id")}</Label>
             <Input id="rds-id" value={id} onChange={(e) => setId(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="rds-e">Engine</Label>
+            <Label htmlFor="rds-e">{t("col.engine")}</Label>
             <Input
               id="rds-e"
               value={engine}
@@ -219,7 +223,7 @@ export function RdsList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!id}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -227,10 +231,10 @@ export function RdsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Engine</TableHead>
-            <TableHead>Class</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{t("col.id")}</TableHead>
+            <TableHead>{t("col.engine")}</TableHead>
+            <TableHead>{t("col.class")}</TableHead>
+            <TableHead>{t("col.state")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -252,7 +256,7 @@ export function RdsList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -260,7 +264,7 @@ export function RdsList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-center text-muted-foreground">
-                No instances.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}

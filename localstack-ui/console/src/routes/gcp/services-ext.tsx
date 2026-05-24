@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { gcpApi } from "@/lib/api/gcp";
 import { useCloud } from "@/lib/cloud-context";
+import { useI18n } from "@/lib/i18n";
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ function err(e: unknown) {
 // ---------------- BigQuery ----------------
 export function BigQueryList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "bigquery", project],
@@ -45,11 +47,11 @@ export function BigQueryList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="bq-id">Dataset ID</Label>
+            <Label htmlFor="bq-id">{t("col.dataset_id")}</Label>
             <Input id="bq-id" value={id} onChange={(e) => setId(e.target.value)} />
           </div>
           <Button onClick={() => create.mutate()} disabled={!id}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -57,8 +59,8 @@ export function BigQueryList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Dataset</TableHead>
-            <TableHead>Location</TableHead>
+            <TableHead>{t("col.dataset")}</TableHead>
+            <TableHead>{t("col.location")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -78,7 +80,7 @@ export function BigQueryList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -86,7 +88,7 @@ export function BigQueryList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={3} className="text-center text-muted-foreground">
-                No datasets.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -99,6 +101,7 @@ export function BigQueryList() {
 // ---------------- Cloud Functions ----------------
 export function FunctionsList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "functions", project],
     queryFn: () => gcpApi.listFunctions(project),
@@ -112,9 +115,9 @@ export function FunctionsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Runtime</TableHead>
-            <TableHead>State</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.runtime")}</TableHead>
+            <TableHead>{t("col.state")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -128,7 +131,7 @@ export function FunctionsList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={3} className="text-center text-muted-foreground">
-                No functions. Deploy via gcloud.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -141,6 +144,7 @@ export function FunctionsList() {
 // ---------------- Cloud Run ----------------
 export function RunList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "run", project],
     queryFn: () => gcpApi.listRunServices(project),
@@ -154,8 +158,8 @@ export function RunList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>URI</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.uri")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -168,7 +172,7 @@ export function RunList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={2} className="text-center text-muted-foreground">
-                No services.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -181,6 +185,7 @@ export function RunList() {
 // ---------------- Secret Manager ----------------
 export function SecretManagerList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "secrets", project],
@@ -203,11 +208,11 @@ export function SecretManagerList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="sm-id">Secret ID</Label>
+            <Label htmlFor="sm-id">{t("col.secret_id")}</Label>
             <Input id="sm-id" value={id} onChange={(e) => setId(e.target.value)} />
           </div>
           <Button onClick={() => create.mutate()} disabled={!id}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -215,7 +220,7 @@ export function SecretManagerList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -251,6 +256,7 @@ export function SecretManagerList() {
 // ---------------- IAM Service Accounts ----------------
 export function GcpIamList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "iam", project],
@@ -273,11 +279,11 @@ export function GcpIamList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="sa-id">Account ID</Label>
+            <Label htmlFor="sa-id">{t("col.account_id")}</Label>
             <Input id="sa-id" value={id} onChange={(e) => setId(e.target.value)} />
           </div>
           <Button onClick={() => create.mutate()} disabled={!id}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -285,9 +291,9 @@ export function GcpIamList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Email</TableHead>
-            <TableHead>Display Name</TableHead>
-            <TableHead>Unique ID</TableHead>
+            <TableHead>{t("col.email")}</TableHead>
+            <TableHead>{t("col.display_name")}</TableHead>
+            <TableHead>{t("col.unique_id")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -307,6 +313,7 @@ export function GcpIamList() {
 // ---------------- Firestore ----------------
 export function FirestoreList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "firestore", project],
     queryFn: () => gcpApi.listFirestoreDatabases(project),
@@ -320,9 +327,9 @@ export function FirestoreList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Location</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.type")}</TableHead>
+            <TableHead>{t("col.location")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -336,7 +343,7 @@ export function FirestoreList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={3} className="text-center text-muted-foreground">
-                No databases.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -349,6 +356,7 @@ export function FirestoreList() {
 // ---------------- KMS ----------------
 export function KmsList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "kms", project],
     queryFn: () => gcpApi.listKeyRings(project),
@@ -362,7 +370,7 @@ export function KmsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Key Ring</TableHead>
+            <TableHead>{t("col.key_ring")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -380,6 +388,7 @@ export function KmsList() {
 // ---------------- DNS ----------------
 export function DnsList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "dns", project],
     queryFn: () => gcpApi.listZones(project),
@@ -393,9 +402,9 @@ export function DnsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>DNS Name</TableHead>
-            <TableHead>Description</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.dns_name")}</TableHead>
+            <TableHead>{t("col.description")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

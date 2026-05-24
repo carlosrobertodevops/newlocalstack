@@ -1,25 +1,8 @@
 {
   "mcpServers": {
-    "aws-mcp": {
-      "command": "uvx",
-      "timeout": 100000,
-      "transport": "stdio",
-      "args": [
-        "mcp-proxy-for-aws@latest",
-        "https://aws-mcp.us-east-1.api.aws/mcp",
-        "--metadata",
-        "AWS_REGION=us-east-1"
-      ]
-    },
     "terraform-mcp": {
       "command": "docker",
       "args": ["run", "-i", "--rm", "hashicorp/terraform-mcp-server:0.5.2"]
-    },
-    "Azure-mcp": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@azure/mcp@latest", "server", "start"],
-      "tools": ["*"]
     }
   }
 }

@@ -15,6 +15,7 @@ import {
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { azureApi } from "@/lib/api/azure";
 import { useCloud } from "@/lib/cloud-context";
+import { useI18n } from "@/lib/i18n";
 
 function err(e: unknown) {
   toast.error(e instanceof Error ? e.message : String(e));
@@ -54,10 +55,11 @@ function ActionsBar({
   onCreate: () => void;
   disabled?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex items-end gap-2 flex-wrap">
       <div>
-        <Label className="text-xs">Name</Label>
+        <Label className="text-xs">{t("col.name")}</Label>
         <Input
           value={fields.name}
           onChange={(e) => set({ name: e.target.value })}
@@ -65,7 +67,7 @@ function ActionsBar({
         />
       </div>
       <div>
-        <Label className="text-xs">Resource group</Label>
+        <Label className="text-xs">{t("col.resource_group")}</Label>
         <Input
           value={fields.rg}
           onChange={(e) => set({ rg: e.target.value })}
@@ -73,7 +75,7 @@ function ActionsBar({
         />
       </div>
       <div>
-        <Label className="text-xs">Location</Label>
+        <Label className="text-xs">{t("col.location")}</Label>
         <Input
           value={fields.location}
           onChange={(e) => set({ location: e.target.value })}
@@ -86,7 +88,7 @@ function ActionsBar({
         disabled={!fields.name || disabled}
         onClick={onCreate}
       >
-        Create
+        {t("common.create")}
       </Button>
     </div>
   );
@@ -95,6 +97,7 @@ function ActionsBar({
 // ---------------- Virtual Network ----------------
 export function VnetList() {
   const { subscription } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [f, set, reset] = useCreateFields();
   const { data, refetch } = useQuery({
@@ -126,9 +129,9 @@ export function VnetList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>CIDR</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.location")}</TableHead>
+            <TableHead>{t("col.cidr")}</TableHead>
             <TableHead className="w-20" />
           </TableRow>
         </TableHeader>
@@ -153,7 +156,7 @@ export function VnetList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -161,7 +164,7 @@ export function VnetList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-muted-foreground">
-                No networks.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -174,6 +177,7 @@ export function VnetList() {
 // ---------------- App Service ----------------
 export function AppServiceList() {
   const { subscription } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [f, set, reset] = useCreateFields();
   const { data, refetch } = useQuery({
@@ -205,9 +209,9 @@ export function AppServiceList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Kind</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.location")}</TableHead>
+            <TableHead>{t("col.kind")}</TableHead>
             <TableHead className="w-20" />
           </TableRow>
         </TableHeader>
@@ -230,7 +234,7 @@ export function AppServiceList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -238,7 +242,7 @@ export function AppServiceList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-muted-foreground">
-                No sites.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -251,6 +255,7 @@ export function AppServiceList() {
 // ---------------- Container Registry ----------------
 export function ContainerRegistryList() {
   const { subscription } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [f, set, reset] = useCreateFields();
   const { data, refetch } = useQuery({
@@ -282,9 +287,9 @@ export function ContainerRegistryList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>SKU</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.location")}</TableHead>
+            <TableHead>{t("col.sku")}</TableHead>
             <TableHead className="w-20" />
           </TableRow>
         </TableHeader>
@@ -307,7 +312,7 @@ export function ContainerRegistryList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -321,6 +326,7 @@ export function ContainerRegistryList() {
 // ---------------- Log Analytics (Monitor) ----------------
 export function MonitorList() {
   const { subscription } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [f, set, reset] = useCreateFields();
   const { data, refetch } = useQuery({
@@ -352,8 +358,8 @@ export function MonitorList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Location</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.location")}</TableHead>
             <TableHead className="w-20" />
           </TableRow>
         </TableHeader>
@@ -375,7 +381,7 @@ export function MonitorList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -389,6 +395,7 @@ export function MonitorList() {
 // ---------------- Redis Cache ----------------
 export function RedisList() {
   const { subscription } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [f, set, reset] = useCreateFields();
   const { data, refetch } = useQuery({
@@ -420,9 +427,9 @@ export function RedisList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>SKU</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.location")}</TableHead>
+            <TableHead>{t("col.sku")}</TableHead>
             <TableHead className="w-20" />
           </TableRow>
         </TableHeader>
@@ -445,7 +452,7 @@ export function RedisList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>

@@ -15,6 +15,7 @@ import {
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { azureApi } from "@/lib/api/azure";
 import { useCloud } from "@/lib/cloud-context";
+import { useI18n } from "@/lib/i18n";
 
 function err(e: unknown) {
   toast.error(e instanceof Error ? e.message : String(e));
@@ -36,6 +37,7 @@ export function AzureGenericList({
   extraBody = {},
 }: Props) {
   const { subscription } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const key = ["azure", "generic", ns, rtype, subscription];
   const { data, refetch } = useQuery({
@@ -71,7 +73,7 @@ export function AzureGenericList({
       actions={
         <div className="flex gap-2 items-end flex-wrap">
           <div>
-            <Label className="text-xs">Name</Label>
+            <Label className="text-xs">{t("col.name")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -79,7 +81,7 @@ export function AzureGenericList({
             />
           </div>
           <div>
-            <Label className="text-xs">Resource group</Label>
+            <Label className="text-xs">{t("col.resource_group")}</Label>
             <Input
               value={rg}
               onChange={(e) => setRg(e.target.value)}
@@ -87,7 +89,7 @@ export function AzureGenericList({
             />
           </div>
           <div>
-            <Label className="text-xs">Location</Label>
+            <Label className="text-xs">{t("col.location")}</Label>
             <Input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
@@ -100,7 +102,7 @@ export function AzureGenericList({
             disabled={!name || create.isPending}
             onClick={() => create.mutate()}
           >
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -108,9 +110,9 @@ export function AzureGenericList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Resource ID</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.location")}</TableHead>
+            <TableHead>{t("col.resource_id")}</TableHead>
             <TableHead className="w-20" />
           </TableRow>
         </TableHeader>
@@ -140,7 +142,7 @@ export function AzureGenericList({
                         .catch(err)
                     }
                   >
-                    Delete
+                    {t("common.delete")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -149,7 +151,7 @@ export function AzureGenericList({
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-muted-foreground">
-                No resources.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}

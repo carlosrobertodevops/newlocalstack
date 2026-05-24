@@ -15,6 +15,7 @@ import {
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { azureApi } from "@/lib/api/azure";
 import { useCloud } from "@/lib/cloud-context";
+import { useI18n } from "@/lib/i18n";
 import {
   genTerraformAzureRg,
   genTerraformAzureStorageAccount,
@@ -22,6 +23,7 @@ import {
 
 export function ResourceGroupsList() {
   const { subscription } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("eastus");
@@ -57,7 +59,7 @@ export function ResourceGroupsList() {
       actions={
         <div className="flex items-end gap-2">
           <div>
-            <Label className="text-xs">Name</Label>
+            <Label className="text-xs">{t("col.name")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -66,7 +68,7 @@ export function ResourceGroupsList() {
             />
           </div>
           <div>
-            <Label className="text-xs">Location</Label>
+            <Label className="text-xs">{t("col.location")}</Label>
             <Input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
@@ -79,22 +81,22 @@ export function ResourceGroupsList() {
             disabled={!name || create.isPending}
             onClick={() => create.mutate()}
           >
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
     >
       {isLoading ? (
-        <div className="p-3 text-sm text-muted-foreground">loading…</div>
+        <div className="p-3 text-sm text-muted-foreground">{t("sidebar.loading")}</div>
       ) : !data || data.length === 0 ? (
-        <div className="p-3 text-sm text-muted-foreground">No groups.</div>
+        <div className="p-3 text-sm text-muted-foreground">{t("common.empty")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>State</TableHead>
+              <TableHead>{t("col.name")}</TableHead>
+              <TableHead>{t("col.location")}</TableHead>
+              <TableHead>{t("col.state")}</TableHead>
               <TableHead className="w-20" />
             </TableRow>
           </TableHeader>
@@ -112,7 +114,7 @@ export function ResourceGroupsList() {
                     variant="ghost"
                     onClick={() => del.mutate(g.name)}
                   >
-                    Delete
+                    {t("common.delete")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -126,6 +128,7 @@ export function ResourceGroupsList() {
 
 export function StorageAccountsList() {
   const { subscription } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [rg, setRg] = useState("default");
@@ -166,7 +169,7 @@ export function StorageAccountsList() {
       actions={
         <div className="flex items-end gap-2 flex-wrap">
           <div>
-            <Label className="text-xs">Name</Label>
+            <Label className="text-xs">{t("col.name")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -175,7 +178,7 @@ export function StorageAccountsList() {
             />
           </div>
           <div>
-            <Label className="text-xs">Resource group</Label>
+            <Label className="text-xs">{t("col.resource_group")}</Label>
             <Input
               value={rg}
               onChange={(e) => setRg(e.target.value)}
@@ -183,7 +186,7 @@ export function StorageAccountsList() {
             />
           </div>
           <div>
-            <Label className="text-xs">Location</Label>
+            <Label className="text-xs">{t("col.location")}</Label>
             <Input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
@@ -196,22 +199,22 @@ export function StorageAccountsList() {
             disabled={!name || create.isPending}
             onClick={() => create.mutate()}
           >
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
     >
       {isLoading ? (
-        <div className="p-3 text-sm text-muted-foreground">loading…</div>
+        <div className="p-3 text-sm text-muted-foreground">{t("sidebar.loading")}</div>
       ) : !data || data.length === 0 ? (
-        <div className="p-3 text-sm text-muted-foreground">No accounts.</div>
+        <div className="p-3 text-sm text-muted-foreground">{t("common.empty")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Kind</TableHead>
+              <TableHead>{t("col.name")}</TableHead>
+              <TableHead>{t("col.location")}</TableHead>
+              <TableHead>{t("col.kind")}</TableHead>
               <TableHead className="w-20" />
             </TableRow>
           </TableHeader>
@@ -227,7 +230,7 @@ export function StorageAccountsList() {
                     variant="ghost"
                     onClick={() => del.mutate(s.name)}
                   >
-                    Delete
+                    {t("common.delete")}
                   </Button>
                 </TableCell>
               </TableRow>

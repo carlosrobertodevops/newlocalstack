@@ -5,6 +5,14 @@ import { useI18n, type Lang } from "@/lib/i18n";
 import type { CloudName } from "@/lib/skins";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ServiceIcon } from "@/lib/service-icons";
 import { Cloud, Moon, Sun } from "lucide-react";
 
 const CLOUDS: { id: CloudName; label: string }[] = [
@@ -14,9 +22,9 @@ const CLOUDS: { id: CloudName; label: string }[] = [
 ];
 
 const LANGS: { id: Lang; label: string }[] = [
-  { id: "en", label: "EN" },
-  { id: "pt-BR", label: "PT-BR" },
-  { id: "es", label: "ES" },
+  { id: "en", label: "English" },
+  { id: "pt-BR", label: "Português" },
+  { id: "es", label: "Español" },
 ];
 
 export function TopBar() {
@@ -30,6 +38,8 @@ export function TopBar() {
     setCloud(next);
     navigate({ to: `/${next}` });
   };
+
+  const currentLang = LANGS.find((l) => l.id === lang) ?? LANGS[0];
 
   return (
     <header
@@ -48,36 +58,31 @@ export function TopBar() {
             variant="ghost"
             onClick={() => handleSwitch(c.id)}
             className={cn(
-              "text-white hover:bg-white/10",
+              "text-white hover:bg-white/10 inline-flex items-center gap-1.5",
               cloud === c.id && "ring-1 ring-white/40 bg-white/10",
             )}
           >
+            <ServiceIcon id="cloud" cloud={c.id} style={{ width: 14, height: 14 }} />
             {c.label}
           </Button>
         ))}
       </nav>
       <div className="flex items-center gap-2 text-xs">
-        <div
-          className="flex items-center rounded-md ring-1 ring-white/30 overflow-hidden"
-          role="group"
-          aria-label={t("topbar.language")}
-        >
-          {LANGS.map((l) => (
-            <button
-              key={l.id}
-              type="button"
-              onClick={() => setLang(l.id)}
-              className={cn(
-                "px-2 py-1 text-[11px] font-medium",
-                lang === l.id
-                  ? "bg-white/20 text-white"
-                  : "text-white/80 hover:bg-white/10",
-              )}
-            >
-              {l.label}
-            </button>
-          ))}
-        </div>
+        <Select value={lang} onValueChange={(v) => setLang(v as Lang)}>
+          <SelectTrigger
+            aria-label={t("topbar.language")}
+            className="h-7 w-[7.5rem] border-white/30 bg-transparent text-white text-[11px] px-2 py-0 hover:bg-white/10"
+          >
+            <SelectValue>{currentLang.label}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {LANGS.map((l) => (
+              <SelectItem key={l.id} value={l.id} className="text-xs">
+                {l.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button
           size="sm"
           variant="ghost"

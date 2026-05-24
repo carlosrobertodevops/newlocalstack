@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { awsApi } from "@/lib/api/aws";
+import { useI18n } from "@/lib/i18n";
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ function err(e: unknown) {
 // ---------------- SNS ----------------
 export function SnsList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["sns", "topics"],
     queryFn: awsApi.listTopics,
@@ -47,7 +49,7 @@ export function SnsList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="sns-name">Topic name</Label>
+            <Label htmlFor="sns-name">{t("col.topic_name")}</Label>
             <Input
               id="sns-name"
               value={name}
@@ -56,7 +58,7 @@ export function SnsList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -64,21 +66,21 @@ export function SnsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ARN</TableHead>
+            <TableHead>{t("col.arn")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
         <TableBody>
-          {(data ?? []).map((t) => (
-            <TableRow key={t.TopicArn}>
-              <TableCell className="font-mono text-xs">{t.TopicArn}</TableCell>
+          {(data ?? []).map((tp) => (
+            <TableRow key={tp.TopicArn}>
+              <TableCell className="font-mono text-xs">{tp.TopicArn}</TableCell>
               <TableCell>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => remove.mutate(t.TopicArn!)}
+                  onClick={() => remove.mutate(tp.TopicArn!)}
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -86,7 +88,7 @@ export function SnsList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={2} className="text-center text-muted-foreground">
-                No topics.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -99,6 +101,7 @@ export function SnsList() {
 // ---------------- CloudWatch Logs ----------------
 export function LogsList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["logs", "groups"],
     queryFn: awsApi.listLogGroups,
@@ -124,7 +127,7 @@ export function LogsList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="lg-name">Group name</Label>
+            <Label htmlFor="lg-name">{t("col.group_name")}</Label>
             <Input
               id="lg-name"
               value={name}
@@ -133,7 +136,7 @@ export function LogsList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -141,8 +144,8 @@ export function LogsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Retention</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.retention")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -157,7 +160,7 @@ export function LogsList() {
                   variant="ghost"
                   onClick={() => remove.mutate(g.logGroupName!)}
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -165,7 +168,7 @@ export function LogsList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={3} className="text-center text-muted-foreground">
-                No log groups.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -178,6 +181,7 @@ export function LogsList() {
 // ---------------- IAM ----------------
 export function IamList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const users = useQuery({ queryKey: ["iam", "users"], queryFn: awsApi.listIamUsers });
   const roles = useQuery({ queryKey: ["iam", "roles"], queryFn: awsApi.listIamRoles });
   const [u, setU] = useState("");
@@ -211,7 +215,7 @@ export function IamList() {
         <div>
           <div className="flex items-end gap-2 mb-2">
             <div className="flex-1">
-              <Label htmlFor="iam-u">New user</Label>
+              <Label htmlFor="iam-u">{t("col.user_name")}</Label>
               <Input
                 id="iam-u"
                 value={u}
@@ -226,8 +230,8 @@ export function IamList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>ARN</TableHead>
+                <TableHead>{t("col.user")}</TableHead>
+                <TableHead>{t("col.arn")}</TableHead>
                 <TableHead className="w-20" />
               </TableRow>
             </TableHeader>
@@ -247,7 +251,7 @@ export function IamList() {
                           .catch(err)
                       }
                     >
-                      Delete
+                      {t("common.delete")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -258,7 +262,7 @@ export function IamList() {
         <div>
           <div className="flex items-end gap-2 mb-2">
             <div className="flex-1">
-              <Label htmlFor="iam-r">New role (lambda-assumable)</Label>
+              <Label htmlFor="iam-r">{t("col.role_name")}</Label>
               <Input
                 id="iam-r"
                 value={r}
@@ -273,8 +277,8 @@ export function IamList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Role</TableHead>
-                <TableHead>ARN</TableHead>
+                <TableHead>{t("col.role")}</TableHead>
+                <TableHead>{t("col.arn")}</TableHead>
                 <TableHead className="w-20" />
               </TableRow>
             </TableHeader>
@@ -294,7 +298,7 @@ export function IamList() {
                           .catch(err)
                       }
                     >
-                      Delete
+                      {t("common.delete")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -310,6 +314,7 @@ export function IamList() {
 // ---------------- Secrets Manager ----------------
 export function SecretsList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["secrets"],
     queryFn: awsApi.listSecrets,
@@ -332,11 +337,11 @@ export function SecretsList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="sec-n">Name</Label>
+            <Label htmlFor="sec-n">{t("col.name")}</Label>
             <Input id="sec-n" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="sec-v">Value</Label>
+            <Label htmlFor="sec-v">{t("col.value")}</Label>
             <Input
               id="sec-v"
               type="password"
@@ -353,8 +358,8 @@ export function SecretsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>ARN</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.arn")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -374,7 +379,7 @@ export function SecretsList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -388,6 +393,7 @@ export function SecretsList() {
 // ---------------- EC2 ----------------
 export function Ec2List() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["ec2", "instances"],
     queryFn: awsApi.listInstances,
@@ -405,11 +411,11 @@ export function Ec2List() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="ami">AMI</Label>
+            <Label htmlFor="ami">{t("col.ami")}</Label>
             <Input id="ami" value={ami} onChange={(e) => setAmi(e.target.value)} />
           </div>
           <Button onClick={() => run.mutate()} disabled={!ami}>
-            Run instance
+            {t("common.run_instance")}
           </Button>
         </div>
       }
@@ -418,8 +424,8 @@ export function Ec2List() {
         <TableHeader>
           <TableRow>
             <TableHead>ID</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>State</TableHead>
+            <TableHead>{t("col.type")}</TableHead>
+            <TableHead>{t("col.state")}</TableHead>
             <TableHead>AMI</TableHead>
             <TableHead className="w-24" />
           </TableRow>
@@ -442,7 +448,7 @@ export function Ec2List() {
                       .catch(err)
                   }
                 >
-                  Terminate
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -456,6 +462,7 @@ export function Ec2List() {
 // ---------------- KMS ----------------
 export function KmsList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["kms"],
     queryFn: awsApi.listKmsKeys,
@@ -476,17 +483,17 @@ export function KmsList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="kms-d">Description</Label>
+            <Label htmlFor="kms-d">{t("col.description")}</Label>
             <Input id="kms-d" value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
-          <Button onClick={() => create.mutate()}>Create key</Button>
+          <Button onClick={() => create.mutate()}>{t("common.create")}</Button>
         </div>
       }
     >
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Key ID</TableHead>
+            <TableHead>{t("col.id")}</TableHead>
             <TableHead>ARN</TableHead>
             <TableHead className="w-32" />
           </TableRow>
@@ -507,7 +514,7 @@ export function KmsList() {
                       .catch(err)
                   }
                 >
-                  Schedule delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -521,6 +528,7 @@ export function KmsList() {
 // ---------------- CloudFormation ----------------
 export function CfnList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["cfn", "stacks"],
     queryFn: awsApi.listStacks,
@@ -530,9 +538,9 @@ export function CfnList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Created</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.state")}</TableHead>
+            <TableHead>{t("col.created")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -553,7 +561,7 @@ export function CfnList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -561,7 +569,7 @@ export function CfnList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-muted-foreground">
-                No stacks.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -574,6 +582,7 @@ export function CfnList() {
 // ---------------- ECR ----------------
 export function EcrList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["ecr"],
     queryFn: awsApi.listEcrRepos,
@@ -594,11 +603,11 @@ export function EcrList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="ecr-n">Repo name</Label>
+            <Label htmlFor="ecr-n">{t("col.repo_name")}</Label>
             <Input id="ecr-n" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -606,8 +615,8 @@ export function EcrList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>URI</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.uri")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -627,7 +636,7 @@ export function EcrList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>

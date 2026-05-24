@@ -15,6 +15,7 @@ import {
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { gcpApi } from "@/lib/api/gcp";
 import { useCloud } from "@/lib/cloud-context";
+import { useI18n } from "@/lib/i18n";
 
 function err(e: unknown) {
   toast.error(e instanceof Error ? e.message : String(e));
@@ -23,6 +24,7 @@ function err(e: unknown) {
 // ---------------- VPC Networks ----------------
 export function VpcNetworksList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "networks", project],
@@ -44,7 +46,7 @@ export function VpcNetworksList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="vpc-n">Name</Label>
+            <Label htmlFor="vpc-n">{t("col.name")}</Label>
             <Input
               id="vpc-n"
               value={name}
@@ -52,7 +54,7 @@ export function VpcNetworksList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -60,7 +62,7 @@ export function VpcNetworksList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
             <TableHead>Auto subnets</TableHead>
             <TableHead className="w-24" />
           </TableRow>
@@ -83,7 +85,7 @@ export function VpcNetworksList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -97,6 +99,7 @@ export function VpcNetworksList() {
 // ---------------- Compute Engine Instances ----------------
 export function ComputeList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [zone, setZone] = useState("us-central1-a");
   const [name, setName] = useState("");
@@ -119,7 +122,7 @@ export function ComputeList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="ce-z">Zone</Label>
+            <Label htmlFor="ce-z">{t("col.zone")}</Label>
             <Input
               id="ce-z"
               value={zone}
@@ -128,7 +131,7 @@ export function ComputeList() {
             />
           </div>
           <div>
-            <Label htmlFor="ce-n">Name</Label>
+            <Label htmlFor="ce-n">{t("col.name")}</Label>
             <Input
               id="ce-n"
               value={name}
@@ -144,9 +147,9 @@ export function ComputeList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.state")}</TableHead>
+            <TableHead>{t("col.type")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -171,7 +174,7 @@ export function ComputeList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -192,6 +195,7 @@ export function ComputeList() {
 // ---------------- Cloud SQL ----------------
 export function SqlList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [region, setRegion] = useState("us-central1");
@@ -214,7 +218,7 @@ export function SqlList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="sql-n">Name</Label>
+            <Label htmlFor="sql-n">{t("col.name")}</Label>
             <Input
               id="sql-n"
               value={name}
@@ -222,7 +226,7 @@ export function SqlList() {
             />
           </div>
           <div>
-            <Label htmlFor="sql-r">Region</Label>
+            <Label htmlFor="sql-r">{t("common.region")}</Label>
             <Input
               id="sql-r"
               value={region}
@@ -231,7 +235,7 @@ export function SqlList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -239,10 +243,10 @@ export function SqlList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Version</TableHead>
-            <TableHead>Region</TableHead>
-            <TableHead>State</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.version")}</TableHead>
+            <TableHead>{t("common.region")}</TableHead>
+            <TableHead>{t("col.state")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -266,7 +270,7 @@ export function SqlList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -280,6 +284,7 @@ export function SqlList() {
 // ---------------- Spanner ----------------
 export function SpannerList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [display, setDisplay] = useState("");
@@ -304,7 +309,7 @@ export function SpannerList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="sp-id">Instance ID</Label>
+            <Label htmlFor="sp-id">{t("col.instance_id")}</Label>
             <Input
               id="sp-id"
               value={name}
@@ -312,7 +317,7 @@ export function SpannerList() {
             />
           </div>
           <div>
-            <Label htmlFor="sp-d">Display name</Label>
+            <Label htmlFor="sp-d">{t("col.display_name")}</Label>
             <Input
               id="sp-d"
               value={display}
@@ -320,7 +325,7 @@ export function SpannerList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -328,9 +333,9 @@ export function SpannerList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Display</TableHead>
-            <TableHead>State</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.display_name")}</TableHead>
+            <TableHead>{t("col.state")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -370,6 +375,7 @@ export function SpannerList() {
 // ---------------- Monitoring ----------------
 export function MonitoringList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["gcp", "monitoring", project],
     queryFn: () => gcpApi.listMonitoringMetrics(project),
@@ -379,9 +385,9 @@ export function MonitoringList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>Kind</TableHead>
-            <TableHead>Name</TableHead>
+            <TableHead>{t("col.type")}</TableHead>
+            <TableHead>{t("col.kind")}</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -395,7 +401,7 @@ export function MonitoringList() {
           {(data ?? []).length === 0 && (
             <TableRow>
               <TableCell colSpan={3} className="text-center text-muted-foreground">
-                No metrics.
+                {t("common.empty")}
               </TableCell>
             </TableRow>
           )}
@@ -408,6 +414,7 @@ export function MonitoringList() {
 // ---------------- GKE ----------------
 export function GkeList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [location, setLocation] = useState("us-central1");
   const [name, setName] = useState("");
@@ -430,7 +437,7 @@ export function GkeList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="gke-l">Location</Label>
+            <Label htmlFor="gke-l">{t("col.location")}</Label>
             <Input
               id="gke-l"
               value={location}
@@ -439,7 +446,7 @@ export function GkeList() {
             />
           </div>
           <div>
-            <Label htmlFor="gke-n">Cluster name</Label>
+            <Label htmlFor="gke-n">{t("col.cluster_name")}</Label>
             <Input
               id="gke-n"
               value={name}
@@ -447,7 +454,7 @@ export function GkeList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -455,9 +462,9 @@ export function GkeList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.location")}</TableHead>
+            <TableHead>{t("col.state")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -478,7 +485,7 @@ export function GkeList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -499,6 +506,7 @@ export function GkeList() {
 // ---------------- Cloud Scheduler ----------------
 export function SchedulerList() {
   const { project } = useCloud();
+  const { t } = useI18n();
   const qc = useQueryClient();
   const [location, setLocation] = useState("us-central1");
   const [jobId, setJobId] = useState("");
@@ -524,7 +532,7 @@ export function SchedulerList() {
       actions={
         <div className="flex flex-wrap gap-2 items-end">
           <div>
-            <Label htmlFor="sch-l">Location</Label>
+            <Label htmlFor="sch-l">{t("col.location")}</Label>
             <Input
               id="sch-l"
               value={location}
@@ -533,7 +541,7 @@ export function SchedulerList() {
             />
           </div>
           <div>
-            <Label htmlFor="sch-id">Job ID</Label>
+            <Label htmlFor="sch-id">{t("col.job_id")}</Label>
             <Input
               id="sch-id"
               value={jobId}
@@ -541,7 +549,7 @@ export function SchedulerList() {
             />
           </div>
           <div>
-            <Label htmlFor="sch-s">Schedule</Label>
+            <Label htmlFor="sch-s">{t("col.schedule")}</Label>
             <Input
               id="sch-s"
               value={schedule}
@@ -550,7 +558,7 @@ export function SchedulerList() {
             />
           </div>
           <div>
-            <Label htmlFor="sch-u">Target URL</Label>
+            <Label htmlFor="sch-u">{t("col.target_url")}</Label>
             <Input
               id="sch-u"
               value={url}
@@ -566,9 +574,9 @@ export function SchedulerList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Schedule</TableHead>
-            <TableHead>State</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.schedule")}</TableHead>
+            <TableHead>{t("col.state")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>

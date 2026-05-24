@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { awsApi } from "@/lib/api/aws";
+import { useI18n } from "@/lib/i18n";
 import {
   genTerraformDynamoTable,
   genTerraformLambdaFunction,
@@ -27,6 +28,7 @@ import {
 // ============================================================================
 export function S3List() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["aws", "s3", "buckets"],
@@ -58,7 +60,7 @@ export function S3List() {
       actions={
         <div className="flex items-end gap-2">
           <div>
-            <Label className="text-xs">Bucket name</Label>
+            <Label className="text-xs">{t("col.bucket_name")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -72,21 +74,21 @@ export function S3List() {
             disabled={!name || create.isPending}
             onClick={() => create.mutate(name)}
           >
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
     >
       {isLoading ? (
-        <div className="text-sm text-muted-foreground p-3">loading…</div>
+        <div className="text-sm text-muted-foreground p-3">{t("sidebar.loading")}</div>
       ) : !data || data.length === 0 ? (
-        <div className="text-sm text-muted-foreground p-3">No buckets yet.</div>
+        <div className="text-sm text-muted-foreground p-3">{t("common.empty")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Created</TableHead>
+              <TableHead>{t("col.name")}</TableHead>
+              <TableHead>{t("col.created")}</TableHead>
               <TableHead className="w-20" />
             </TableRow>
           </TableHeader>
@@ -103,7 +105,7 @@ export function S3List() {
                     variant="ghost"
                     onClick={() => del.mutate(b.Name!)}
                   >
-                    Delete
+                    {t("common.delete")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -120,6 +122,7 @@ export function S3List() {
 // ============================================================================
 export function SqsList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["aws", "sqs", "queues"],
@@ -150,7 +153,7 @@ export function SqsList() {
       actions={
         <div className="flex items-end gap-2">
           <div>
-            <Label className="text-xs">Queue name</Label>
+            <Label className="text-xs">{t("col.queue_name")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -164,20 +167,20 @@ export function SqsList() {
             disabled={!name || create.isPending}
             onClick={() => create.mutate(name)}
           >
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
     >
       {isLoading ? (
-        <div className="text-sm text-muted-foreground p-3">loading…</div>
+        <div className="text-sm text-muted-foreground p-3">{t("sidebar.loading")}</div>
       ) : !data || data.length === 0 ? (
-        <div className="text-sm text-muted-foreground p-3">No queues yet.</div>
+        <div className="text-sm text-muted-foreground p-3">{t("common.empty")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>URL</TableHead>
+              <TableHead>{t("col.url")}</TableHead>
               <TableHead className="w-32" />
             </TableRow>
           </TableHeader>
@@ -191,7 +194,7 @@ export function SqsList() {
                     variant="ghost"
                     onClick={() => del.mutate(url)}
                   >
-                    Delete
+                    {t("common.delete")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -208,6 +211,7 @@ export function SqsList() {
 // ============================================================================
 export function DynamoList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [pk, setPk] = useState("id");
   const { data, isLoading, refetch } = useQuery({
@@ -239,7 +243,7 @@ export function DynamoList() {
       actions={
         <div className="flex items-end gap-2">
           <div>
-            <Label className="text-xs">Table</Label>
+            <Label className="text-xs">{t("col.table")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -248,7 +252,7 @@ export function DynamoList() {
             />
           </div>
           <div>
-            <Label className="text-xs">Partition key</Label>
+            <Label className="text-xs">{t("col.partition_key")}</Label>
             <Input
               value={pk}
               onChange={(e) => setPk(e.target.value)}
@@ -261,34 +265,34 @@ export function DynamoList() {
             disabled={!name || create.isPending}
             onClick={() => create.mutate()}
           >
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
     >
       {isLoading ? (
-        <div className="text-sm text-muted-foreground p-3">loading…</div>
+        <div className="text-sm text-muted-foreground p-3">{t("sidebar.loading")}</div>
       ) : !data || data.length === 0 ? (
-        <div className="text-sm text-muted-foreground p-3">No tables.</div>
+        <div className="text-sm text-muted-foreground p-3">{t("common.empty")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Table</TableHead>
+              <TableHead>{t("col.table")}</TableHead>
               <TableHead className="w-20" />
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((t) => (
-              <TableRow key={t}>
-                <TableCell className="font-mono">{t}</TableCell>
+            {data.map((tbl) => (
+              <TableRow key={tbl}>
+                <TableCell className="font-mono">{tbl}</TableCell>
                 <TableCell>
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => del.mutate(t)}
+                    onClick={() => del.mutate(tbl)}
                   >
-                    Delete
+                    {t("common.delete")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -309,6 +313,7 @@ const NOOP_HANDLER = "index.handler";
 
 export function LambdaList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [runtime, setRuntime] = useState("nodejs20.x");
   const { data, isLoading, refetch } = useQuery({
@@ -346,7 +351,7 @@ export function LambdaList() {
       actions={
         <div className="flex items-end gap-2">
           <div>
-            <Label className="text-xs">Function</Label>
+            <Label className="text-xs">{t("col.function")}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -355,7 +360,7 @@ export function LambdaList() {
             />
           </div>
           <div>
-            <Label className="text-xs">Runtime</Label>
+            <Label className="text-xs">{t("col.runtime")}</Label>
             <Input
               value={runtime}
               onChange={(e) => setRuntime(e.target.value)}
@@ -368,21 +373,21 @@ export function LambdaList() {
             disabled={!name || create.isPending}
             onClick={() => create.mutate()}
           >
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
     >
       {isLoading ? (
-        <div className="text-sm text-muted-foreground p-3">loading…</div>
+        <div className="text-sm text-muted-foreground p-3">{t("sidebar.loading")}</div>
       ) : !data || data.length === 0 ? (
-        <div className="text-sm text-muted-foreground p-3">No functions.</div>
+        <div className="text-sm text-muted-foreground p-3">{t("common.empty")}</div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Function</TableHead>
-              <TableHead>Runtime</TableHead>
+              <TableHead>{t("col.function")}</TableHead>
+              <TableHead>{t("col.runtime")}</TableHead>
               <TableHead className="w-20" />
             </TableRow>
           </TableHeader>
@@ -397,7 +402,7 @@ export function LambdaList() {
                     variant="ghost"
                     onClick={() => del.mutate(f.FunctionName!)}
                   >
-                    Delete
+                    {t("common.delete")}
                   </Button>
                 </TableCell>
               </TableRow>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { awsApi } from "@/lib/api/aws";
+import { useI18n } from "@/lib/i18n";
 import { ResourcePage } from "@/components/resource-page/ResourcePage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ function err(e: unknown) {
 // ---------------- VPC ----------------
 export function VpcList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const vpcs = useQuery({ queryKey: ["vpc", "vpcs"], queryFn: awsApi.listVpcs });
   const subnets = useQuery({
     queryKey: ["vpc", "subnets"],
@@ -62,7 +64,7 @@ export function VpcList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="vpc-cidr">VPC CIDR</Label>
+            <Label htmlFor="vpc-cidr">{t("col.vpc_cidr")}</Label>
             <Input
               id="vpc-cidr"
               value={cidr}
@@ -70,7 +72,7 @@ export function VpcList() {
             />
           </div>
           <Button onClick={() => createVpc.mutate()} disabled={!cidr}>
-            Create VPC
+            {t("common.create_vpc")}
           </Button>
         </div>
       }
@@ -81,9 +83,9 @@ export function VpcList() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>CIDR</TableHead>
-                <TableHead>State</TableHead>
+                <TableHead>{t("col.id")}</TableHead>
+                <TableHead>{t("col.cidr")}</TableHead>
+                <TableHead>{t("col.state")}</TableHead>
                 <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
@@ -111,7 +113,7 @@ export function VpcList() {
           <h3 className="text-sm font-semibold mb-2">Subnets</h3>
           <div className="flex gap-2 items-end mb-2">
             <div>
-              <Label htmlFor="sub-vpc">VPC ID</Label>
+              <Label htmlFor="sub-vpc">{t("col.id")}</Label>
               <Input
                 id="sub-vpc"
                 value={subVpc}
@@ -120,7 +122,7 @@ export function VpcList() {
               />
             </div>
             <div>
-              <Label htmlFor="sub-cidr">Subnet CIDR</Label>
+              <Label htmlFor="sub-cidr">{t("col.subnet_cidr")}</Label>
               <Input
                 id="sub-cidr"
                 value={subCidr}
@@ -131,16 +133,16 @@ export function VpcList() {
               onClick={() => createSubnet.mutate()}
               disabled={!subVpc || !subCidr}
             >
-              Create Subnet
+              {t("common.create_subnet")}
             </Button>
           </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
+                <TableHead>{t("col.id")}</TableHead>
                 <TableHead>VPC</TableHead>
-                <TableHead>CIDR</TableHead>
-                <TableHead>AZ</TableHead>
+                <TableHead>{t("col.cidr")}</TableHead>
+                <TableHead>{t("col.az")}</TableHead>
                 <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
@@ -173,6 +175,7 @@ export function VpcList() {
 // ---------------- Route 53 ----------------
 export function Route53List() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["route53"],
     queryFn: awsApi.listHostedZones,
@@ -198,7 +201,7 @@ export function Route53List() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="r53-n">Domain name</Label>
+            <Label htmlFor="r53-n">{t("col.domain_name")}</Label>
             <Input
               id="r53-n"
               value={name}
@@ -207,7 +210,7 @@ export function Route53List() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -215,9 +218,9 @@ export function Route53List() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
             <TableHead>ID</TableHead>
-            <TableHead>Records</TableHead>
+            <TableHead>{t("col.records")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -233,7 +236,7 @@ export function Route53List() {
                   variant="ghost"
                   onClick={() => remove.mutate(z.Id!)}
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -247,6 +250,7 @@ export function Route53List() {
 // ---------------- API Gateway ----------------
 export function ApiGatewayList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["apigw"],
     queryFn: awsApi.listRestApis,
@@ -267,7 +271,7 @@ export function ApiGatewayList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="api-n">API name</Label>
+            <Label htmlFor="api-n">{t("col.api_name")}</Label>
             <Input
               id="api-n"
               value={name}
@@ -275,7 +279,7 @@ export function ApiGatewayList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -283,8 +287,8 @@ export function ApiGatewayList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>ID</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.id")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -304,7 +308,7 @@ export function ApiGatewayList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -324,6 +328,7 @@ const PASS_DEF = JSON.stringify({
 
 export function StepFunctionsList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["sfn"],
     queryFn: awsApi.listStateMachines,
@@ -348,7 +353,7 @@ export function StepFunctionsList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="sm-n">Name</Label>
+            <Label htmlFor="sm-n">{t("col.name")}</Label>
             <Input
               id="sm-n"
               value={name}
@@ -356,7 +361,7 @@ export function StepFunctionsList() {
             />
           </div>
           <div>
-            <Label htmlFor="sm-r">Role ARN</Label>
+            <Label htmlFor="sm-r">{t("col.role_arn")}</Label>
             <Input
               id="sm-r"
               value={role}
@@ -372,8 +377,8 @@ export function StepFunctionsList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>ARN</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.arn")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -395,7 +400,7 @@ export function StepFunctionsList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -409,6 +414,7 @@ export function StepFunctionsList() {
 // ---------------- EventBridge ----------------
 export function EventBridgeList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["events", "buses"],
     queryFn: awsApi.listEventBuses,
@@ -429,7 +435,7 @@ export function EventBridgeList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="eb-n">Bus name</Label>
+            <Label htmlFor="eb-n">{t("col.bus_name")}</Label>
             <Input
               id="eb-n"
               value={name}
@@ -437,7 +443,7 @@ export function EventBridgeList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -445,8 +451,8 @@ export function EventBridgeList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>ARN</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.arn")}</TableHead>
             <TableHead className="w-24" />
           </TableRow>
         </TableHeader>
@@ -466,7 +472,7 @@ export function EventBridgeList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -480,6 +486,7 @@ export function EventBridgeList() {
 // ---------------- Kinesis ----------------
 export function KinesisList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["kinesis"],
     queryFn: awsApi.listKinesisStreams,
@@ -502,7 +509,7 @@ export function KinesisList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="ks-n">Name</Label>
+            <Label htmlFor="ks-n">{t("col.name")}</Label>
             <Input
               id="ks-n"
               value={name}
@@ -510,7 +517,7 @@ export function KinesisList() {
             />
           </div>
           <div>
-            <Label htmlFor="ks-s">Shards</Label>
+            <Label htmlFor="ks-s">{t("col.shards")}</Label>
             <Input
               id="ks-s"
               type="number"
@@ -520,7 +527,7 @@ export function KinesisList() {
             />
           </div>
           <Button onClick={() => create.mutate()} disabled={!name}>
-            Create
+            {t("common.create")}
           </Button>
         </div>
       }
@@ -547,7 +554,7 @@ export function KinesisList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
@@ -561,6 +568,7 @@ export function KinesisList() {
 // ---------------- SSM Parameter Store ----------------
 export function SsmList() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data, refetch } = useQuery({
     queryKey: ["ssm"],
     queryFn: awsApi.listSsmParameters,
@@ -585,7 +593,7 @@ export function SsmList() {
       actions={
         <div className="flex gap-2 items-end">
           <div>
-            <Label htmlFor="ssm-n">Name</Label>
+            <Label htmlFor="ssm-n">{t("col.name")}</Label>
             <Input
               id="ssm-n"
               value={name}
@@ -594,7 +602,7 @@ export function SsmList() {
             />
           </div>
           <div>
-            <Label htmlFor="ssm-v">Value</Label>
+            <Label htmlFor="ssm-v">{t("col.value")}</Label>
             <Input
               id="ssm-v"
               type={secure ? "password" : "text"}
@@ -611,7 +619,7 @@ export function SsmList() {
             secure
           </label>
           <Button onClick={() => create.mutate()} disabled={!name || !value}>
-            Put
+            {t("common.put")}
           </Button>
         </div>
       }
@@ -619,8 +627,8 @@ export function SsmList() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead>{t("col.name")}</TableHead>
+            <TableHead>{t("col.type")}</TableHead>
             <TableHead>Version</TableHead>
             <TableHead className="w-24" />
           </TableRow>
@@ -642,7 +650,7 @@ export function SsmList() {
                       .catch(err)
                   }
                 >
-                  Delete
+                  {t("common.delete")}
                 </Button>
               </TableCell>
             </TableRow>
