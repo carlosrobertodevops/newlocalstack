@@ -13,29 +13,30 @@ STORAGE_ACCOUNT_TYPE = "Microsoft.Storage/storageAccounts"
 
 
 def _storage_primary_endpoints(account_name: str) -> dict[str, str]:
-    # Path-based endpoints pointing at the LocalStack TLS sidecar. Avoids
-    # DNS gymnastics for `<account>.blob.core.windows.net` style hosts.
-    base = "https://localhost:4569"
+    # Host-based endpoints. Provider parses `<account>.<service>.<suffix>`
+    # and expects "core.windows.net". Real DNS would point those hostnames
+    # at Azure; locally we serve them via the TLS sidecar and a /etc/hosts
+    # registration step (see bin/azure-register-host).
     return {
-        "blob": f"{base}/{account_name}/",
-        "queue": f"{base}/{account_name}/",
-        "table": f"{base}/{account_name}/",
-        "file": f"{base}/{account_name}/",
-        "web": f"{base}/{account_name}/",
-        "dfs": f"{base}/{account_name}/",
+        "blob": f"https://{account_name}.blob.core.windows.net/",
+        "queue": f"https://{account_name}.queue.core.windows.net/",
+        "table": f"https://{account_name}.table.core.windows.net/",
+        "file": f"https://{account_name}.file.core.windows.net/",
+        "web": f"https://{account_name}.z13.web.core.windows.net/",
+        "dfs": f"https://{account_name}.dfs.core.windows.net/",
         "internetEndpoints": {
-            "blob": f"{base}/{account_name}/",
-            "file": f"{base}/{account_name}/",
-            "web": f"{base}/{account_name}/",
-            "dfs": f"{base}/{account_name}/",
+            "blob": f"https://{account_name}.blob.core.windows.net/",
+            "file": f"https://{account_name}.file.core.windows.net/",
+            "web": f"https://{account_name}.z13.web.core.windows.net/",
+            "dfs": f"https://{account_name}.dfs.core.windows.net/",
         },
         "microsoftEndpoints": {
-            "blob": f"{base}/{account_name}/",
-            "queue": f"{base}/{account_name}/",
-            "table": f"{base}/{account_name}/",
-            "file": f"{base}/{account_name}/",
-            "web": f"{base}/{account_name}/",
-            "dfs": f"{base}/{account_name}/",
+            "blob": f"https://{account_name}.blob.core.windows.net/",
+            "queue": f"https://{account_name}.queue.core.windows.net/",
+            "table": f"https://{account_name}.table.core.windows.net/",
+            "file": f"https://{account_name}.file.core.windows.net/",
+            "web": f"https://{account_name}.z13.web.core.windows.net/",
+            "dfs": f"https://{account_name}.dfs.core.windows.net/",
         },
     }
 

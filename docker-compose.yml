@@ -61,6 +61,11 @@ services:
     image: nginx:1.27-alpine
     ports:
       - "127.0.0.1:4569:4569"
+      # Port 443 lets azurerm reach the sidecar without ":4569" in the URL,
+      # which the provider rejects when parsing storage account IDs.
+      # Requires the host to have :443 free; OrbStack/Docker Desktop bind
+      # without elevation. Comment out if conflicting with another service.
+      - "127.0.0.1:443:4569"
     volumes:
       - "./localstack-tls/nginx.conf:/etc/nginx/nginx.conf:ro"
       - "./localstack-tls/certs:/etc/nginx/certs:ro"
