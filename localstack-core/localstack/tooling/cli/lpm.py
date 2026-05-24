@@ -19,7 +19,7 @@ console = Console()
 @click.group()
 def cli():
     """
-    The LocalStack Package Manager (lpm) CLI is a set of commands to install third-party packages used by localstack
+    The New LocalStack Package Manager (lpm) CLI is a set of commands to install third-party packages used by New LocalStack
     service providers.
 
     Here are some handy commands:

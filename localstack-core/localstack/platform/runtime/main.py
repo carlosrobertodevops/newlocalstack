@@ -16,23 +16,23 @@ def print_runtime_information(in_docker: bool = False):
     from localstack.utils.docker_utils import DOCKER_CLIENT
 
     print()
-    print(f"LocalStack version: {constants.VERSION}")
+    print(f"New LocalStack version: {constants.VERSION}")
     if in_docker:
         try:
             container_name = get_main_container_name()
-            print(f"LocalStack Docker container name: {container_name}")
+            print(f"New LocalStack Docker container name: {container_name}")
             inspect_result = DOCKER_CLIENT.inspect_container(container_name)
             container_id = inspect_result["Id"]
-            print(f"LocalStack Docker container id: {container_id[:12]}")
+            print(f"New LocalStack Docker container id: {container_id[:12]}")
             image_details = DOCKER_CLIENT.inspect_image(inspect_result["Image"])
             digests = image_details.get("RepoDigests") or ["Unavailable"]
-            print(f"LocalStack Docker image sha: {digests[0]}")
+            print(f"New LocalStack Docker image sha: {digests[0]}")
         except ContainerException:
             print(
-                "LocalStack Docker container info: Failed to inspect the LocalStack docker container. "
+                "New LocalStack Docker container info: Failed to inspect the New LocalStack docker container. "
                 "This is likely because the docker socket was not mounted into the container. "
-                "Without access to the docker socket, LocalStack will not function properly. Please "
-                "consult the LocalStack documentation on how to correctly start up LocalStack. ",
+                "Without access to the docker socket, New LocalStack will not function properly. Please "
+                "consult the New LocalStack documentation on how to correctly start up New LocalStack. ",
                 end="",
             )
             if config.DEBUG:
@@ -40,14 +40,14 @@ def print_runtime_information(in_docker: bool = False):
                 traceback.print_exc()
             else:
                 print(
-                    "You can run LocalStack with `DEBUG=1` to get more information about the error."
+                    "You can run New LocalStack with `DEBUG=1` to get more information about the error."
                 )
 
     if config.LOCALSTACK_BUILD_DATE:
-        print(f"LocalStack build date: {config.LOCALSTACK_BUILD_DATE}")
+        print(f"New LocalStack build date: {config.LOCALSTACK_BUILD_DATE}")
 
     if config.LOCALSTACK_BUILD_GIT_HASH:
-        print(f"LocalStack build git hash: {config.LOCALSTACK_BUILD_GIT_HASH}")
+        print(f"New LocalStack build git hash: {config.LOCALSTACK_BUILD_GIT_HASH}")
 
     print()
 

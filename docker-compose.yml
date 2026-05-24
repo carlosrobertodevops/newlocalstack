@@ -3,8 +3,11 @@ services:
     container_name: "${LOCALSTACK_DOCKER_NAME:-localstack-main}"
     image: ${LOCALSTACK_IMAGE:-localstack/localstack-custom}
     ports:
-      - "127.0.0.1:4566:4566" # LocalStack Gateway
+      - "127.0.0.1:4566:4566" # New LocalStack Gateway
       - "127.0.0.1:4510-4559:4510-4559" # external services port range
+    labels:
+      # OrbStack auto-proxy: edge gateway listens on 4566 (not 80).
+      dev.orbstack.http-port: "4566"
     environment:
       # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
       - DEBUG=${DEBUG:-0}
@@ -30,6 +33,9 @@ services:
     image: nginx:1.27-alpine
     ports:
       - "127.0.0.1:4577:80"
+    labels:
+      # OrbStack auto-proxy: explicit HTTP port (nginx listens on 80 inside).
+      dev.orbstack.http-port: "80"
     volumes:
       # Serves the built console SPA (run `make console-build` to populate dist/).
       # legacy.html is copied from console/public/ into dist/ by Vite at build time.
@@ -66,6 +72,14 @@ services:
       # Requires the host to have :443 free; OrbStack/Docker Desktop bind
       # without elevation. Comment out if conflicting with another service.
       - "127.0.0.1:443:4569"
+    labels:
+      # OrbStack auto-proxy: TLS sidecar speaks HTTPS on 4569. Use
+      # https-port (not http-port) so the proxy talks TLS upstream —
+      # otherwise nginx replies "400 plain HTTP to HTTPS port".
+      # Plain HTTP requests on :80 are redirected to HTTPS by the
+      # server block below (see localstack-tls/nginx.conf).
+      dev.orbstack.https-port: "4569"
+      dev.orbstack.http-port: "80"
     volumes:
       - "./localstack-tls/nginx.conf:/etc/nginx/nginx.conf:ro"
       - "./localstack-tls/certs:/etc/nginx/certs:ro"
