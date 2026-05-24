@@ -180,6 +180,23 @@ Exemplos em [`examples/terraform/`](../examples/terraform/) — um
 Variáveis necessárias por cloud — ver
 [`examples/terraform/README.md`](../examples/terraform/README.md).
 
+**Azure TLS — fix definitivo do x509**:
+
+- **macOS: OBRIGATÓRIO** `./examples/terraform/azure/trust-cert.sh` (sudo). Go em darwin
+  lê APENAS o Keychain — `SSL_CERT_FILE`/`REQUESTS_CA_BUNDLE` são IGNORADOS pelo
+  `terraform-provider-azurerm`. Não há alternativa.
+- **Linux**: `trust-cert.sh` OU `source ./setup-env.sh` (Go honra `SSL_CERT_FILE`).
+
+Fluxo recomendado em qualquer SO:
+
+```bash
+cd examples/terraform/azure
+make setup      # roda trust + init
+make plan && make apply
+```
+
+Ver [`examples/terraform/azure/README.md`](../examples/terraform/azure/README.md).
+
 ### Serverless Framework
 
 Exemplos em [`examples/serverless/`](../examples/serverless/). Plugins
