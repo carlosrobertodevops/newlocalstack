@@ -46,11 +46,63 @@ class QueueRouter:
         response = self._dispatch(request)
         return response(environ, start_response)
 
+    _SERVICE_PROPERTIES_XML = (
+        b'<?xml version="1.0" encoding="utf-8"?>'
+        b"<StorageServiceProperties>"
+        b"<Logging><Version>1.0</Version><Delete>false</Delete>"
+        b"<Read>false</Read><Write>false</Write>"
+        b"<RetentionPolicy><Enabled>false</Enabled></RetentionPolicy></Logging>"
+        b"<HourMetrics><Version>1.0</Version><Enabled>false</Enabled>"
+        b"<RetentionPolicy><Enabled>false</Enabled></RetentionPolicy></HourMetrics>"
+        b"<MinuteMetrics><Version>1.0</Version><Enabled>false</Enabled>"
+        b"<RetentionPolicy><Enabled>false</Enabled></RetentionPolicy></MinuteMetrics>"
+        b"<Cors/>"
+        b"</StorageServiceProperties>"
+    )
+
     def _dispatch(self, request: Request) -> Response:
         parts = request.path.strip("/").split("/")
-        if len(parts) < 2:
-            return _xml_error("InvalidUri", "expected /{account}/{queue}[...]", 400)
+        if not parts or not parts[0]:
+            return _xml_error("InvalidUri", "expected /{account}[/{queue}]", 400)
         account = parts[0]
+        restype = request.args.get("restype")
+        comp = request.args.get("comp")
+
+        if len(parts) == 1:
+            self.provider.data_store.ensure_account(account)
+            if restype == "service" and comp == "properties":
+                if request.method in ("GET", "HEAD"):
+                    return _with_headers(
+                        Response(self._SERVICE_PROPERTIES_XML, status=200, mimetype="application/xml")
+                    )
+                if request.method in ("PUT", "POST"):
+                    return _with_headers(Response(status=202))
+            if restype == "service" and comp == "stats":
+                xml = (
+                    b'<?xml version="1.0" encoding="utf-8"?>'
+                    b"<StorageServiceStats><GeoReplication>"
+                    b"<Status>live</Status><LastSyncTime/>"
+                    b"</GeoReplication></StorageServiceStats>"
+                )
+                return _with_headers(Response(xml, status=200, mimetype="application/xml"))
+            if comp == "list":
+                store = self.provider.data_store.ensure_account(account)
+                prefix = request.args.get("prefix") or ""
+                names = sorted(q for q in store.queues if q.startswith(prefix))
+                root = ET.Element(
+                    "EnumerationResults",
+                    ServiceEndpoint=f"https://{account}.queue.core.windows.net/",
+                )
+                if prefix:
+                    ET.SubElement(root, "Prefix").text = prefix
+                queues = ET.SubElement(root, "Queues")
+                for name in names:
+                    q = ET.SubElement(queues, "Queue")
+                    ET.SubElement(q, "Name").text = name
+                ET.SubElement(root, "NextMarker").text = ""
+                return _xml_response(root)
+            return _xml_error("InvalidUri", "expected /{account}/{queue}[...]", 400)
+
         queue = parts[1]
         tail = parts[2:]
 
