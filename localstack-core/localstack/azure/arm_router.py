@@ -55,6 +55,46 @@ class ArmRouter:
         self.url_map = Map(
             [
                 Rule(
+                    "/subscriptions/<sub>",
+                    endpoint="subscription",
+                    methods=["GET"],
+                ),
+                Rule(
+                    "/subscriptions",
+                    endpoint="subscriptions",
+                    methods=["GET"],
+                ),
+                Rule(
+                    "/tenants",
+                    endpoint="tenants",
+                    methods=["GET"],
+                ),
+                Rule(
+                    "/subscriptions/<sub>/providers",
+                    endpoint="providers",
+                    methods=["GET"],
+                ),
+                Rule(
+                    "/subscriptions/<sub>/providers/<ns>",
+                    endpoint="provider",
+                    methods=["GET"],
+                ),
+                Rule(
+                    "/subscriptions/<sub>/providers/<ns>/register",
+                    endpoint="provider_register",
+                    methods=["POST"],
+                ),
+                Rule(
+                    "/subscriptions/<sub>/providers/<ns>/unregister",
+                    endpoint="provider_register",
+                    methods=["POST"],
+                ),
+                Rule(
+                    "/subscriptions/<sub>/locations",
+                    endpoint="locations",
+                    methods=["GET"],
+                ),
+                Rule(
                     "/subscriptions/<sub>/resourceGroups",
                     endpoint="resource_groups",
                     methods=["GET"],
@@ -112,6 +152,105 @@ class ArmRouter:
         return response(environ, start_response)
 
     # -- handlers --
+
+    _DEFAULT_LOCATIONS = (
+        ("eastus", "East US"),
+        ("eastus2", "East US 2"),
+        ("westus", "West US"),
+        ("westus2", "West US 2"),
+        ("westus3", "West US 3"),
+        ("westeurope", "West Europe"),
+        ("northeurope", "North Europe"),
+        ("brazilsouth", "Brazil South"),
+    )
+
+    def _serialize_provider(self, sub: str, spec_namespace: str, types: list) -> dict:
+        return {
+            "id": f"/subscriptions/{sub}/providers/{spec_namespace}",
+            "namespace": spec_namespace,
+            "registrationState": "Registered",
+            "registrationPolicy": "RegistrationRequired",
+            "resourceTypes": types,
+        }
+
+    def _all_providers(self, sub: str) -> list[dict]:
+        by_ns: dict[str, list[dict]] = {}
+        for spec in self.provider.registry.all():
+            by_ns.setdefault(spec.namespace, []).append(
+                {
+                    "resourceType": spec.resource_type,
+                    "locations": list(spec.locations) or [name for name, _ in self._DEFAULT_LOCATIONS],
+                    "apiVersions": list(spec.api_versions),
+                    "defaultApiVersion": spec.api_versions[0] if spec.api_versions else None,
+                    "capabilities": "None",
+                }
+            )
+        return [self._serialize_provider(sub, ns, types) for ns, types in by_ns.items()]
+
+    def _handle_subscriptions(self, request: Request) -> Response:
+        return _json_response({"value": [self._subscription_obj("00000000-0000-0000-0000-000000000000")]})
+
+    def _handle_tenants(self, request: Request) -> Response:
+        return _json_response(
+            {
+                "value": [
+                    {
+                        "id": "/tenants/00000000-0000-0000-0000-000000000002",
+                        "tenantId": "00000000-0000-0000-0000-000000000002",
+                        "displayName": "LocalStack Tenant",
+                        "countryCode": "US",
+                        "tenantCategory": "Home",
+                    }
+                ]
+            }
+        )
+
+    def _subscription_obj(self, sub: str) -> dict:
+        return {
+            "id": f"/subscriptions/{sub}",
+            "subscriptionId": sub,
+            "tenantId": "00000000-0000-0000-0000-000000000002",
+            "displayName": "LocalStack Subscription",
+            "state": "Enabled",
+            "subscriptionPolicies": {
+                "locationPlacementId": "Public_2014-09-01",
+                "quotaId": "Internal_2014-09-01",
+                "spendingLimit": "Off",
+            },
+            "authorizationSource": "RoleBased",
+        }
+
+    def _handle_subscription(self, request: Request, *, sub: str) -> Response:
+        return _json_response(self._subscription_obj(sub))
+
+    def _handle_locations(self, request: Request, *, sub: str) -> Response:
+        value = [
+            {
+                "id": f"/subscriptions/{sub}/locations/{name}",
+                "subscriptionId": sub,
+                "name": name,
+                "displayName": display,
+                "regionalDisplayName": f"(US) {display}",
+                "metadata": {"regionType": "Physical", "regionCategory": "Recommended"},
+            }
+            for name, display in self._DEFAULT_LOCATIONS
+        ]
+        return _json_response({"value": value})
+
+    def _handle_providers(self, request: Request, *, sub: str) -> Response:
+        return _json_response({"value": self._all_providers(sub)})
+
+    def _handle_provider(self, request: Request, *, sub: str, ns: str) -> Response:
+        for prov in self._all_providers(sub):
+            if prov["namespace"].lower() == ns.lower():
+                return _json_response(prov)
+        return _error("InvalidResourceNamespace", f"namespace {ns} not registered", 404)
+
+    def _handle_provider_register(self, request: Request, *, sub: str, ns: str) -> Response:
+        for prov in self._all_providers(sub):
+            if prov["namespace"].lower() == ns.lower():
+                return _json_response(prov)
+        return _error("InvalidResourceNamespace", f"namespace {ns} not registered", 404)
 
     def _handle_resource_groups(self, request: Request, *, sub: str) -> Response:
         scope = AzureScope.for_subscription(sub)

@@ -16,7 +16,7 @@ from localstack.azure.arm_router import ArmRouter
 from localstack.azure.defaults import create_default_registry
 from localstack.azure.resource_manager import ResourceManagerProvider
 from localstack.azure.services.cosmos import CosmosSqlRouter, MicrosoftDocumentDBProvider
-from localstack.azure.services.entra import EntraTokenRouter
+from localstack.azure.services.entra import EntraTokenRouter, GraphRouter
 from localstack.azure.services.functions import (
     FunctionsHttpRouter,
     FunctionsRegistry,
@@ -125,6 +125,7 @@ class AzureGateway:
             provider=self.functions_provider, registry=self.functions_registry
         )
         self.entra_router = EntraTokenRouter()
+        self.graph_router = GraphRouter()
 
     def __call__(self, environ, start_response):
         request = Request(environ)
@@ -175,6 +176,11 @@ class AzureGateway:
         # path-based fallback: ARM control plane
         if request.path.startswith("/subscriptions/"):
             return self.arm_router, None
+
+        # Microsoft Graph (servicePrincipals/applications/me) — used by
+        # azurerm to discover the object ID of the authenticated SP.
+        if request.path.startswith("/v1.0/") or request.path.startswith("/beta/"):
+            return self.graph_router, None
 
         # entra fallback for /{tenant}/oauth2/v2.0/token regardless of host
         if request.path.endswith("/oauth2/v2.0/token"):

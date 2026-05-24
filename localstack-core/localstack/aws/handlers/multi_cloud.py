@@ -47,6 +47,19 @@ _AZURE_PATH_PREFIXES = (
 )
 _AZURE_PATH_EXACT = {"/metadata/endpoints"}
 
+# Microsoft Graph (v1.0 / beta) paths used by azurerm to discover object IDs.
+# Scoped to known Graph collections so unrelated /v1.0/* paths (e.g. GCP)
+# don't get hijacked.
+_AZURE_GRAPH_COLLECTIONS = (
+    "servicePrincipals",
+    "applications",
+    "users",
+    "groups",
+    "me",
+    "directoryObjects",
+    "organization",
+)
+
 _GCP_PATH_PREFIXES = (
     "/storage/v1/",
     "/upload/storage/v1/",
@@ -68,6 +81,18 @@ _GCP_V1_PROJECT_SEGS = (
     "/services",
     "/functions",
 )
+
+
+def _looks_like_azure_graph(path: str) -> bool:
+    # Match `/v1.0/<collection>` and `/beta/<collection>` (Microsoft Graph).
+    for prefix in ("/v1.0/", "/beta/"):
+        if not path.startswith(prefix):
+            continue
+        rest = path[len(prefix):]
+        head = rest.split("/", 1)[0].split("?", 1)[0]
+        if head in _AZURE_GRAPH_COLLECTIONS:
+            return True
+    return False
 
 
 def _looks_like_gcp_v1_projects(path: str) -> bool:
@@ -125,6 +150,8 @@ class MultiCloudRouterHandler(Handler):
         if path in _AZURE_PATH_EXACT:
             return "azure"
         if any(path.startswith(p) for p in _AZURE_PATH_PREFIXES):
+            return "azure"
+        if _looks_like_azure_graph(path):
             return "azure"
         if path.endswith("/oauth2/v2.0/token"):
             return "azure"

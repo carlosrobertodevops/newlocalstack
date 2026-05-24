@@ -40,6 +40,9 @@ class AzureServiceSpecRegistry:
     def namespaces(self) -> tuple[str, ...]:
         return tuple(sorted({spec.namespace for spec in self._specs.values()}))
 
+    def all(self) -> tuple[AzureServiceSpec, ...]:
+        return tuple(self._specs.values())
+
     def resource_types(self, namespace: str) -> tuple[str, ...]:
         namespace_key = namespace.lower()
         return tuple(
