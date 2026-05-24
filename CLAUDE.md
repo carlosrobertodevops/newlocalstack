@@ -102,6 +102,31 @@ Experimental Azure support lives under `localstack-core/localstack/azure/`. Reac
 
 User-facing guide: `docs/azure-terraform.md`.
 
+## Multi-cloud stack management
+
+Each cloud (AWS / Azure / GCP) exposes a REST surface under `/_localstack/clouds/<cloud>/...` for inventory and isolated resets. Resetting one cloud never touches another.
+
+**Endpoints** (router wiring in `localstack-core/localstack/aws/services/internal.py`, handlers in `localstack-core/localstack/aws/services/_localstack_stack.py`):
+
+- `GET    /_localstack/clouds` — list registered clouds.
+- `GET    /_localstack/clouds/<cloud>/health` — service availability per cloud.
+- `GET    /_localstack/clouds/<cloud>/info` — provider metadata.
+- `GET    /_localstack/clouds/<cloud>/stack` — active inventory `{services: [{service, resource_count}], total_resources, total_services}`.
+- `DELETE /_localstack/clouds/<cloud>/stack/services/<service>` — wipe one service.
+- `POST   /_localstack/clouds/<cloud>/stack/reset` (body `{"confirm": true}`) — wipe everything for that cloud only.
+
+**Console** (`localstack-ui/console`): each cloud has a `/stack` route (`AwsStack`, `AzureStack`, `GcpStack` in `src/routes/stack.tsx`). The page lists active services with per-row "Remover" buttons and a red "Limpar Stack" CT button in the header — both gated by a confirmation modal. API helpers in `src/lib/api/stack.ts`. Auto-refresh every 20s via react-query.
+
+**Isolation contract**: AWS reset iterates `moto.backends.list_all_backends()` + native LocalStack stores. Azure reset clears `AzureGateway.stores` + storage/cosmos/functions data planes. GCP reset clears `GcpGateway.stores` + storage/pubsub/firestore/iam/functions. Each gateway owns its own stores — no cross-cloud state leakage.
+
+User-facing guide: `docs/multi-cloud-stack.md`. Console UX detail: `docs/console-stack-view.md`. Per-cloud Terraform guides: `docs/azure-terraform.md`, `docs/gcp-terraform.md`. Serverless Framework guide: `docs/serverless-framework.md`.
+
+Examples (each is self-contained, no real creds required):
+
+- `examples/terraform/{aws,azure,gcp}/` — full Terraform configs + READMEs.
+- `examples/serverless/{aws,azure,gcp}/` — Serverless Framework configs.
+- `examples/cli/{aws,azure,gcp}/` — `demo.sh` golden-path scripts.
+
 ## Conventions
 
 - `localstack-core/localstack/__init__.py` must NOT exist — `make lint` aborts if it does (breaks namespace packaging).

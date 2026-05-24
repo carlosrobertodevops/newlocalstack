@@ -151,7 +151,7 @@ class BlobRouter:
     def _container_op(
         self, request: Request, account: str, container: str, comp: str | None
     ) -> Response:
-        if request.method == "PUT":
+        if request.method == "PUT" and comp is None:
             existing = self.provider.data_store.ensure_account(account).containers
             if container in existing:
                 return _xml_error("ContainerAlreadyExists", "container exists", 409)
@@ -174,6 +174,30 @@ class BlobRouter:
                 return _xml_error("ContainerNotFound", str(exc), 404)
             xml = self._list_blobs_xml(container, blobs, request.args.get("prefix") or "")
             return _with_headers(Response(xml, status=200, mimetype="application/xml"))
+        if request.method in ("GET", "HEAD") and comp in (None, "metadata", "acl"):
+            # Container existence + properties / metadata / ACL probe.
+            # `terraform-provider-azurerm` issues GET ?restype=container before
+            # creating a container to detect duplicates; we return 200 with the
+            # container's recorded metadata when present, 404 otherwise.
+            store = self.provider.data_store.ensure_account(account)
+            entry = store.containers.get(container)
+            if entry is None:
+                return _xml_error("ContainerNotFound", "container not found", 404)
+            resp = Response(status=200)
+            metadata = getattr(entry, "metadata", None) or {}
+            _add_metadata_headers(resp, metadata)
+            resp.headers["x-ms-lease-status"] = "unlocked"
+            resp.headers["x-ms-lease-state"] = "available"
+            resp.headers["x-ms-has-immutability-policy"] = "false"
+            resp.headers["x-ms-has-legal-hold"] = "false"
+            resp.headers["x-ms-blob-public-access"] = "container" if getattr(entry, "public_access", None) else ""
+            if comp == "acl":
+                resp.data = (
+                    b'<?xml version="1.0" encoding="utf-8"?>'
+                    b"<SignedIdentifiers/>"
+                )
+                resp.mimetype = "application/xml"
+            return _with_headers(resp)
         return _xml_error("MethodNotAllowed", f"{request.method} not supported", 405)
 
     # -- blob ops --

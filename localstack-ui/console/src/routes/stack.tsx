@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useQueries } from "@tanstack/react-query";
-import { ChevronRight, RefreshCw } from "lucide-react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { ChevronRight, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
 import { ServiceIcon } from "@/lib/service-icons";
 import { awsApi } from "@/lib/api/aws";
 import { azureApi } from "@/lib/api/azure";
 import { gcpApi } from "@/lib/api/gcp";
+import { stackApi } from "@/lib/api/stack";
 import { useCloud } from "@/lib/cloud-context";
 import { SERVICES_BY_CLOUD } from "@/routes/registry";
 import type { CloudName } from "@/lib/skins";
@@ -76,6 +77,33 @@ const GCP_TYPE: Record<string, string> = {
   cloudscheduler: "Job",
   container: "Cluster",
 };
+
+// Per-cloud mapping from the service id used in the UI registry to the
+// backend identifier that /_localstack/clouds/<cloud>/stack/services/<id>
+// expects.
+const SERVICE_REMOTE_ID: Record<CloudName, Record<string, string>> = {
+  aws: {
+    secretsmanager: "secretsmanager",
+    cloudformation: "cloudformation",
+    apigateway: "apigateway",
+    stepfunctions: "stepfunctions",
+    events: "events",
+    secretsmgr: "secretsmanager",
+  },
+  azure: {
+    // Azure expects a Microsoft.* namespace OR the literal "Microsoft.Resources"
+    // for resource groups.
+  },
+  gcp: {
+    "gcp-iam": "iam",
+    "gcp-kms": "kms",
+    "compute-networks": "compute-networks",
+  },
+};
+
+function remoteServiceId(cloud: CloudName, id: string): string {
+  return SERVICE_REMOTE_ID[cloud]?.[id] ?? id;
+}
 
 function nameOf(item: unknown): string {
   if (typeof item === "string") return item;
@@ -167,6 +195,81 @@ const CLOUD_SCOPE: Record<CloudName, { region: string; account: string }> = {
   gcp: { region: "us-central1", account: "project" },
 };
 
+// ---------------------------------------------------------------------------
+// Confirmation modal
+// ---------------------------------------------------------------------------
+
+interface ConfirmModalProps {
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel: string;
+  destructive?: boolean;
+  busy?: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+function ConfirmModal({
+  open,
+  title,
+  message,
+  confirmLabel,
+  destructive,
+  busy,
+  onCancel,
+  onConfirm,
+}: ConfirmModalProps) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/60 grid place-items-center p-4"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="bg-card border rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
+        <div className="flex items-start gap-3">
+          {destructive ? (
+            <AlertTriangle className="text-red-600 mt-0.5 shrink-0" size={20} />
+          ) : null}
+          <div className="space-y-1 flex-1">
+            <h2 className="text-lg font-semibold">{title}</h2>
+            <p className="text-sm text-muted-foreground whitespace-pre-line">
+              {message}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            className="px-3 py-2 rounded-md border bg-card text-sm hover:bg-muted disabled:opacity-50"
+            onClick={onCancel}
+            disabled={busy}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className={
+              destructive
+                ? "px-3 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+                : "px-3 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
+            }
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {busy ? "Aguarde…" : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// StackRow
+// ---------------------------------------------------------------------------
+
 interface RowProps {
   cloud: CloudName;
   serviceId: string;
@@ -176,9 +279,20 @@ interface RowProps {
   loading: boolean;
   error: boolean;
   path: string;
+  onRequestRemove: (serviceId: string, serviceLabel: string) => void;
 }
 
-function StackRow({ cloud, serviceId, serviceLabel, resourceType, items, loading, error, path }: RowProps) {
+function StackRow({
+  cloud,
+  serviceId,
+  serviceLabel,
+  resourceType,
+  items,
+  loading,
+  error,
+  path,
+  onRequestRemove,
+}: RowProps) {
   const [open, setOpen] = useState(false);
   const count = items.length;
   const scope = CLOUD_SCOPE[cloud];
@@ -187,26 +301,37 @@ function StackRow({ cloud, serviceId, serviceLabel, resourceType, items, loading
 
   return (
     <div className="border rounded-md bg-card overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition text-left"
-      >
-        <ChevronRight
-          size={14}
-          className={`transition-transform ${open ? "rotate-90" : ""}`}
-        />
-        <ServiceIcon id={serviceId} cloud={cloud} />
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="font-semibold">{serviceLabel}</span>
-          <span className="text-sm text-muted-foreground">{resourceType}</span>
-          <span className="bg-zinc-900 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
-            {loading ? "…" : error ? "!" : count}
-          </span>
-        </div>
+      <div className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-3 flex-1 text-left min-w-0"
+        >
+          <ChevronRight
+            size={14}
+            className={`transition-transform ${open ? "rotate-90" : ""}`}
+          />
+          <ServiceIcon id={serviceId} cloud={cloud} />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="font-semibold">{serviceLabel}</span>
+            <span className="text-sm text-muted-foreground">{resourceType}</span>
+            <span className="bg-zinc-900 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              {loading ? "…" : error ? "!" : count}
+            </span>
+          </div>
+        </button>
         <span className="text-xs text-muted-foreground hidden sm:inline">1 region</span>
         <span className="text-xs text-muted-foreground hidden md:inline mr-2">1 account</span>
-      </button>
+        <button
+          type="button"
+          onClick={() => onRequestRemove(serviceId, serviceLabel)}
+          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border border-red-500/30 text-red-600 hover:bg-red-500/10 transition"
+          title={`Remover todos os recursos de ${serviceLabel}`}
+          aria-label={`Remover todos os recursos de ${serviceLabel}`}
+        >
+          <Trash2 size={12} /> Remover
+        </button>
+      </div>
       {open && count > 0 && (
         <div className="border-t bg-muted/20 px-4 py-2">
           <ul className="text-xs space-y-1">
@@ -231,10 +356,18 @@ function StackRow({ cloud, serviceId, serviceLabel, resourceType, items, loading
   );
 }
 
+// ---------------------------------------------------------------------------
+// CloudStack
+// ---------------------------------------------------------------------------
+
 function CloudStack({ cloud }: { cloud: CloudName }) {
   const { subscription, project } = useCloud();
   const services = SERVICES_BY_CLOUD[cloud];
   const [tick, setTick] = useState(0);
+  const [removeTarget, setRemoveTarget] = useState<{ id: string; label: string } | null>(null);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const queryClient = useQueryClient();
 
   const queries = useQueries({
     queries: services.map((s) => ({
@@ -261,6 +394,39 @@ function CloudStack({ cloud }: { cloud: CloudName }) {
 
   const total = rows.reduce((a, r) => a + r.data.length, 0);
 
+  const refreshAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["stack", cloud] });
+    setTick((t) => t + 1);
+  };
+
+  const handleRemoveConfirm = async () => {
+    if (!removeTarget) return;
+    setBusy(true);
+    try {
+      await stackApi.remove(cloud, remoteServiceId(cloud, removeTarget.id));
+    } catch (err) {
+      // surface as alert; full toast lib not wired
+      window.alert(`Falha ao remover ${removeTarget.label}: ${(err as Error).message}`);
+    } finally {
+      setBusy(false);
+      setRemoveTarget(null);
+      refreshAll();
+    }
+  };
+
+  const handleResetConfirm = async () => {
+    setBusy(true);
+    try {
+      await stackApi.resetAll(cloud);
+    } catch (err) {
+      window.alert(`Falha ao limpar stack: ${(err as Error).message}`);
+    } finally {
+      setBusy(false);
+      setResetOpen(false);
+      refreshAll();
+    }
+  };
+
   return (
     <div className="p-6 space-y-4 max-w-5xl mx-auto">
       <header className="flex items-center justify-between flex-wrap gap-3">
@@ -277,13 +443,24 @@ function CloudStack({ cloud }: { cloud: CloudName }) {
             Terraform, Serverless Framework or this console.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setTick((t) => t + 1)}
-          className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border bg-card hover:bg-muted transition"
-        >
-          <RefreshCw size={12} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={refreshAll}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md border bg-card hover:bg-muted transition"
+          >
+            <RefreshCw size={12} /> Refresh
+          </button>
+          <button
+            type="button"
+            onClick={() => setResetOpen(true)}
+            disabled={total === 0}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed"
+            title={`Limpar todos serviços ativos de ${CLOUD_LABEL[cloud]}`}
+          >
+            <Trash2 size={12} /> Limpar Stack
+          </button>
+        </div>
       </header>
 
       {rows.length === 0 ? (
@@ -305,10 +482,33 @@ function CloudStack({ cloud }: { cloud: CloudName }) {
               loading={loading}
               error={error}
               path={service.path}
+              onRequestRemove={(id, label) => setRemoveTarget({ id, label })}
             />
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        open={!!removeTarget}
+        title={`Remover ${removeTarget?.label ?? ""}`}
+        message={`Esta ação remove TODOS os recursos do serviço ${removeTarget?.label ?? ""} em ${CLOUD_LABEL[cloud]}. É irreversível e não afeta os outros provedores.`}
+        confirmLabel="Remover"
+        destructive
+        busy={busy}
+        onCancel={() => setRemoveTarget(null)}
+        onConfirm={handleRemoveConfirm}
+      />
+
+      <ConfirmModal
+        open={resetOpen}
+        title={`Limpar Stack ${CLOUD_LABEL[cloud]}`}
+        message={`Esta ação remove TODOS os recursos ativos em ${CLOUD_LABEL[cloud]} (reset completo).\n\nNão afeta os outros provedores. Ação irreversível.`}
+        confirmLabel="Confirmar reset"
+        destructive
+        busy={busy}
+        onCancel={() => setResetOpen(false)}
+        onConfirm={handleResetConfirm}
+      />
     </div>
   );
 }

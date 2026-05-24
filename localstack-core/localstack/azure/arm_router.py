@@ -114,6 +114,16 @@ class ArmRouter:
                     methods=["PUT", "GET", "DELETE"],
                 ),
                 Rule(
+                    "/subscriptions/<sub>/resourceGroups/<rg>/resources",
+                    endpoint="resources_in_group",
+                    methods=["GET"],
+                ),
+                Rule(
+                    "/subscriptions/<sub>/resources",
+                    endpoint="resources_in_subscription",
+                    methods=["GET"],
+                ),
+                Rule(
                     "/subscriptions/<sub>/providers/<ns>/<rtype>",
                     endpoint="resources_by_subscription",
                     methods=["GET"],
@@ -297,6 +307,39 @@ class ArmRouter:
         all_resources = self.provider.list_resources(scope, resource_group=rg)
         filtered = [r for r in all_resources if r.type.lower() == type_filter]
         return _json_response(serialize_resource_list(filtered))
+
+    def _handle_resources_in_group(
+        self, request: Request, *, sub: str, rg: str
+    ) -> Response:
+        """`GET /subscriptions/<sub>/resourceGroups/<rg>/resources` — used by
+        `resources.Client#ListByResourceGroup` (azurerm provider destroy flow)."""
+        scope = AzureScope.for_subscription(sub)
+        return _json_response(
+            serialize_resource_list(self.provider.list_resources(scope, resource_group=rg))
+        )
+
+    def _handle_resources_in_subscription(
+        self, request: Request, *, sub: str
+    ) -> Response:
+        """`GET /subscriptions/<sub>/resources` — supports optional OData
+        `$filter=resourceGroup eq '<rg>'`."""
+        scope = AzureScope.for_subscription(sub)
+        all_resources = self.provider.list_resources(scope)
+        odata = request.args.get("$filter") or ""
+        m = re.search(r"resourceGroup\s+eq\s+'([^']+)'", odata, re.IGNORECASE)
+        if m:
+            target = m.group(1).lower()
+            all_resources = [
+                r for r in all_resources
+                if self._resource_group_of(r).lower() == target
+            ]
+        return _json_response(serialize_resource_list(all_resources))
+
+    @staticmethod
+    def _resource_group_of(resource) -> str:
+        # AzureGenericResource.id is /subscriptions/.../resourceGroups/<rg>/providers/...
+        m = re.search(r"/resourceGroups/([^/]+)/", getattr(resource, "id", "") or "")
+        return m.group(1) if m else ""
 
     def _handle_resources_by_subscription(
         self, request: Request, *, sub: str, ns: str, rtype: str
