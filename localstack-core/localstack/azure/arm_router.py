@@ -26,6 +26,15 @@ def _normalize_path(path: str) -> str:
         path = pattern.sub(repl, path)
     return path
 
+
+# Deterministic dummy 64-byte base64 keys for storage account listKeys.
+_STORAGE_DUMMY_KEY_1 = (
+    "TG9jYWxTdGFja0R1bW15U3RvcmFnZUtleTFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUE9"
+)
+_STORAGE_DUMMY_KEY_2 = (
+    "TG9jYWxTdGFja0R1bW15U3RvcmFnZUtleTJBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUE9"
+)
+
 from localstack.azure.arm_serializers import (
     deserialize_resource_body,
     deserialize_resource_group_body,
@@ -118,6 +127,11 @@ class ArmRouter:
                     "/subscriptions/<sub>/resourceGroups/<rg>/providers/<ns>/<rtype>/<name>",
                     endpoint="resource",
                     methods=["PUT", "GET", "DELETE"],
+                ),
+                Rule(
+                    "/subscriptions/<sub>/resourceGroups/<rg>/providers/<ns>/<rtype>/<name>/<action>",
+                    endpoint="resource_action",
+                    methods=["POST", "GET"],
                 ),
             ]
         )
@@ -287,6 +301,56 @@ class ArmRouter:
         all_resources = self.provider.list_resources(scope)
         filtered = [r for r in all_resources if r.type.lower() == type_filter]
         return _json_response(serialize_resource_list(filtered))
+
+    def _handle_resource_action(
+        self,
+        request: Request,
+        *,
+        sub: str,
+        rg: str,
+        ns: str,
+        rtype: str,
+        name: str,
+        action: str,
+    ) -> Response:
+        """Generic POST sub-action dispatcher (listKeys, regenerateKey, listAccountSas, ...)."""
+        type_lower = f"{ns}/{rtype}".lower()
+        action_lower = action.lower()
+
+        if type_lower == "microsoft.storage/storageaccounts":
+            if action_lower in ("listkeys", "regeneratekey"):
+                return _json_response(
+                    {
+                        "keys": [
+                            {
+                                "keyName": "key1",
+                                "value": _STORAGE_DUMMY_KEY_1,
+                                "permissions": "FULL",
+                                "creationTime": "2024-01-01T00:00:00.0000000Z",
+                            },
+                            {
+                                "keyName": "key2",
+                                "value": _STORAGE_DUMMY_KEY_2,
+                                "permissions": "FULL",
+                                "creationTime": "2024-01-01T00:00:00.0000000Z",
+                            },
+                        ]
+                    }
+                )
+            if action_lower == "listaccountsas":
+                return _json_response(
+                    {
+                        "accountSasToken": "?sv=2023-01-01&ss=bfqt&srt=sco&sp=rwdlacupx&se=2099-01-01T00:00:00Z&sig=localstack",
+                    }
+                )
+            if action_lower == "listservicesas":
+                return _json_response(
+                    {
+                        "serviceSasToken": "?sv=2023-01-01&sr=b&sp=r&se=2099-01-01T00:00:00Z&sig=localstack",
+                    }
+                )
+
+        return _error("InvalidAction", f"action {action} not supported for {ns}/{rtype}", 404)
 
     def _handle_resource(
         self, request: Request, *, sub: str, rg: str, ns: str, rtype: str, name: str

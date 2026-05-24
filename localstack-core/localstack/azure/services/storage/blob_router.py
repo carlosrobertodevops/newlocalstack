@@ -69,6 +69,12 @@ class BlobRouter:
         comp = request.args.get("comp")
 
         try:
+            if blob is None and container is None and restype == "service":
+                return self._service_op(request, account, comp)
+            if blob is None and container is None and restype == "account":
+                return self._account_info(account)
+            if blob is None and container is None and comp == "list":
+                return self._list_containers(account, request)
             if blob is None and container is not None and restype == "container":
                 return self._container_op(request, account, container, comp)
             if blob is not None:
@@ -77,6 +83,68 @@ class BlobRouter:
             return _xml_error(self._notfound_code(exc), str(exc), 404)
 
         return _xml_error("InvalidUri", "unsupported request shape", 400)
+
+    # -- account / service ops --
+
+    _SERVICE_PROPERTIES_XML = (
+        b'<?xml version="1.0" encoding="utf-8"?>'
+        b"<StorageServiceProperties>"
+        b"<Logging><Version>1.0</Version><Delete>false</Delete>"
+        b"<Read>false</Read><Write>false</Write>"
+        b"<RetentionPolicy><Enabled>false</Enabled></RetentionPolicy></Logging>"
+        b"<HourMetrics><Version>1.0</Version><Enabled>false</Enabled>"
+        b"<RetentionPolicy><Enabled>false</Enabled></RetentionPolicy></HourMetrics>"
+        b"<MinuteMetrics><Version>1.0</Version><Enabled>false</Enabled>"
+        b"<RetentionPolicy><Enabled>false</Enabled></RetentionPolicy></MinuteMetrics>"
+        b"<Cors/>"
+        b"<DefaultServiceVersion>2022-11-02</DefaultServiceVersion>"
+        b"<DeleteRetentionPolicy><Enabled>false</Enabled></DeleteRetentionPolicy>"
+        b"<StaticWebsite><Enabled>false</Enabled></StaticWebsite>"
+        b"</StorageServiceProperties>"
+    )
+
+    def _service_op(self, request: Request, account: str, comp: str | None) -> Response:
+        # Ensure the account exists so polling resolves quickly.
+        self.provider.data_store.ensure_account(account)
+        if request.method in ("GET", "HEAD") and comp == "properties":
+            return _with_headers(
+                Response(self._SERVICE_PROPERTIES_XML, status=200, mimetype="application/xml")
+            )
+        if request.method in ("PUT", "POST") and comp == "properties":
+            return _with_headers(Response(status=202))
+        if request.method in ("GET", "HEAD") and comp == "stats":
+            xml = (
+                b'<?xml version="1.0" encoding="utf-8"?>'
+                b"<StorageServiceStats><GeoReplication>"
+                b"<Status>live</Status><LastSyncTime/>"
+                b"</GeoReplication></StorageServiceStats>"
+            )
+            return _with_headers(Response(xml, status=200, mimetype="application/xml"))
+        return _xml_error("InvalidUri", f"unsupported service op comp={comp}", 400)
+
+    def _account_info(self, account: str) -> Response:
+        self.provider.data_store.ensure_account(account)
+        resp = Response(status=200)
+        resp.headers["x-ms-sku-name"] = "Standard_LRS"
+        resp.headers["x-ms-account-kind"] = "StorageV2"
+        resp.headers["x-ms-is-hns-enabled"] = "false"
+        return _with_headers(resp)
+
+    def _list_containers(self, account: str, request: Request) -> Response:
+        store = self.provider.data_store.ensure_account(account)
+        prefix = request.args.get("prefix") or ""
+        names = sorted(c for c in store.containers if c.startswith(prefix))
+        root = ET.Element("EnumerationResults", ServiceEndpoint=f"https://{account}.blob.core.windows.net/")
+        if prefix:
+            ET.SubElement(root, "Prefix").text = prefix
+        containers = ET.SubElement(root, "Containers")
+        for name in names:
+            c = ET.SubElement(containers, "Container")
+            ET.SubElement(c, "Name").text = name
+            ET.SubElement(c, "Properties")
+        ET.SubElement(root, "NextMarker").text = ""
+        xml = b'<?xml version="1.0" encoding="utf-8"?>' + ET.tostring(root)
+        return _with_headers(Response(xml, status=200, mimetype="application/xml"))
 
     # -- container ops --
 

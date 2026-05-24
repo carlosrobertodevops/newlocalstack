@@ -21,7 +21,7 @@
   - **Serverless**
   - **Via Console do New LocalStack**
   - **via CLI de cada provedor**
-- E que tenhamos uma opção no console na tela de "Stack (Em ação)" um botão CT vermelho com a oppção de limpar todos os serviços ativos, e que tenha uma mensagem de confirmação, como um resete geral, mas, para cada provider isoladamente.
+- E que tenhamos uma opção no console na tela de "Stack (Em ação)" e em cada serviço em ação uma opção de remover. E também um botão CT vermelho com a oppção de limpar todos os serviços ativos, e que tenha uma mensagem de confirmação, como um resete geral, mas, para cada provider isoladamente.
 - Sempre use 5 ou mais subagentes expecializados.
 
 ## Documentações
