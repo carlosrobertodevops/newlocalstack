@@ -56,6 +56,20 @@ _GCP_PATH_PREFIXES = (
 )
 
 
+_GCP_V1_PROJECT_SEGS = (
+    "/topics",
+    "/subscriptions",
+    "/databases",
+    "/secrets",
+    "/keyRings",
+    "/serviceAccounts",
+    "/locations/",
+    "/queues",
+    "/services",
+    "/functions",
+)
+
+
 def _looks_like_gcp_v1_projects(path: str) -> bool:
     # /v1/projects/<id>/(topics|subscriptions|databases|secrets|keyRings|serviceAccounts|locations)
     if not (path.startswith("/v1/projects/") or path.startswith("/v2/projects/")):
@@ -63,21 +77,18 @@ def _looks_like_gcp_v1_projects(path: str) -> bool:
     tail = path.split("/", 4)
     if len(tail) < 5:
         return False
-    return any(
-        seg in path
-        for seg in (
-            "/topics",
-            "/subscriptions",
-            "/databases",
-            "/secrets",
-            "/keyRings",
-            "/serviceAccounts",
-            "/locations/",
-            "/queues",
-            "/services",
-            "/functions",
-        )
-    )
+    return any(seg in path for seg in _GCP_V1_PROJECT_SEGS)
+
+
+def _looks_like_gcp_unversioned_projects(path: str) -> bool:
+    # google-go-client trims `/v1` when *_custom_endpoint ends in `/`, so
+    # requests arrive as /projects/{p}/(topics|subscriptions|...)/...
+    if not path.startswith("/projects/"):
+        return False
+    tail = path.split("/", 3)
+    if len(tail) < 4:
+        return False
+    return any(seg in path for seg in _GCP_V1_PROJECT_SEGS)
 
 
 class MultiCloudRouterHandler(Handler):
@@ -126,6 +137,8 @@ class MultiCloudRouterHandler(Handler):
         if any(path.startswith(p) for p in _GCP_PATH_PREFIXES):
             return "gcp"
         if _looks_like_gcp_v1_projects(path):
+            return "gcp"
+        if _looks_like_gcp_unversioned_projects(path):
             return "gcp"
         if path.startswith("/v2/entries:"):
             return "gcp"

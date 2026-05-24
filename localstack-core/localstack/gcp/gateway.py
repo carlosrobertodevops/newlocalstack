@@ -205,6 +205,12 @@ class GcpGateway:
             "/topics" in path or "/subscriptions" in path
         ):
             return self.pubsub_router, None
+        # google-go-client trims `/v1` when pubsub_custom_endpoint ends in `/`,
+        # so `/projects/{p}/topics|subscriptions/...` needs a rewrite.
+        if path.startswith("/projects/") and (
+            "/topics" in path or "/subscriptions" in path
+        ):
+            return self.pubsub_router, "/v1" + path
         if path.startswith("/v1/projects/") and "/databases" in path and "/instances/" not in path:
             return self.firestore_router, None
         if path.startswith("/v2/projects/") and "/functions" in path:
@@ -237,5 +243,9 @@ class GcpGateway:
             if "/locations/" in path:
                 return self.memorystore_router, None
             return self.spanner_router, None
+
+        # path-based fallbacks for non-versioned paths (Terraform custom endpoints)
+        if path.startswith("/projects/") and ("/topics" in path or "/subscriptions" in path):
+            return self.pubsub_router, f"/v1{path}"
 
         return None, None

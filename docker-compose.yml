@@ -18,6 +18,13 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       # Init hooks (ready.d) — cria buckets default p/ evitar 404 NoSuchBucket em dev
       - "./localstack-init:/etc/localstack/init"
+      # NOTE: do NOT bind-mount localstack-core/localstack subdirs here. The
+      # editable install resolves the `localstack` namespace package across
+      # multiple paths (incl. /usr/lib/localstack/python-packages), and
+      # any bind-mount under it breaks `localstack.runtime` import.
+      # Instead run `make docker-sync` to copy post-build source changes
+      # (ecr/ecs/eks/rds providers, gcp gateway/models patches) and commit
+      # them into the image. See bin/docker-sync.sh.
   localstack-ui:
     container_name: localstack-ui
     image: nginx:1.27-alpine

@@ -50,7 +50,7 @@ export function CloudShellButton() {
     term.open(containerRef.current);
     fit.fit();
     term.writeln(
-      "\x1b[36m# LocalStack Cloud Shell — aws | az | gcloud only\x1b[0m",
+      "\x1b[36m# New LocalStack Cloud Shell — aws | az | gcloud only\x1b[0m",
     );
     terminalRef.current = term;
     fitRef.current = fit;

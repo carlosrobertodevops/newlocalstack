@@ -101,7 +101,7 @@ export function IacInlineDrawer() {
           <SheetTitle>{title ?? "Infrastructure as Code"}</SheetTitle>
           <SheetDescription>
             Tool: <span className="font-mono">{tool}</span> · Provider configured
-            to LocalStack
+            to New LocalStack
           </SheetDescription>
         </SheetHeader>
 

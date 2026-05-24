@@ -35,6 +35,18 @@ class GcsObject:
         }
 
 
+def _project_number_for(project_id: str) -> str:
+    """Deterministic numeric projectNumber from a project_id string.
+
+    Google's storage API serializes projectNumber as uint64 (string-encoded).
+    google-go-client's json struct tag rejects non-digit strings.
+    """
+    import hashlib
+
+    h = int(hashlib.sha1(project_id.encode("utf-8")).hexdigest()[:15], 16)
+    return str(h & 0x7FFFFFFFFFFFFFFF)
+
+
 @dataclass
 class GcsBucket:
     name: str
@@ -50,7 +62,7 @@ class GcsBucket:
             "kind": "storage#bucket",
             "name": self.name,
             "id": self.name,
-            "projectNumber": self.project,
+            "projectNumber": _project_number_for(self.project),
             "location": self.location,
             "storageClass": self.storage_class,
             "timeCreated": self.created,

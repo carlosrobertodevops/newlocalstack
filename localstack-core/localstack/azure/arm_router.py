@@ -3,11 +3,28 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Callable
 
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.routing import Map, Rule
 from werkzeug.wrappers import Request, Response
+
+# Real Azure ARM treats subscription path segments case-insensitively.
+# Werkzeug routing is case-sensitive, so we normalize a few well-known
+# segments before matching so /resourcegroups, /resourcegroups/, /SUBSCRIPTIONS,
+# etc. all hit the registered routes.
+_PATH_NORMALIZATIONS = (
+    (re.compile(r"/subscriptions/", re.IGNORECASE), "/subscriptions/"),
+    (re.compile(r"/resourcegroups(/|$)", re.IGNORECASE), r"/resourceGroups\1"),
+    (re.compile(r"/providers/", re.IGNORECASE), "/providers/"),
+)
+
+
+def _normalize_path(path: str) -> str:
+    for pattern, repl in _PATH_NORMALIZATIONS:
+        path = pattern.sub(repl, path)
+    return path
 
 from localstack.azure.arm_serializers import (
     deserialize_resource_body,
@@ -48,6 +65,11 @@ class ArmRouter:
                     methods=["PUT", "GET", "DELETE"],
                 ),
                 Rule(
+                    "/subscriptions/<sub>/providers/<ns>/<rtype>",
+                    endpoint="resources_by_subscription",
+                    methods=["GET"],
+                ),
+                Rule(
                     "/subscriptions/<sub>/resourceGroups/<rg>/providers/<ns>/<rtype>",
                     endpoint="resources_by_type",
                     methods=["GET"],
@@ -66,6 +88,11 @@ class ArmRouter:
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
+        original = environ.get("PATH_INFO", "")
+        normalized = _normalize_path(original)
+        if normalized != original:
+            environ = {**environ, "PATH_INFO": normalized}
+            request = Request(environ)
         adapter = self.url_map.bind_to_environ(environ)
         try:
             endpoint, values = adapter.match()
@@ -110,6 +137,15 @@ class ArmRouter:
         scope = AzureScope.for_subscription(sub)
         type_filter = f"{ns}/{rtype}".lower()
         all_resources = self.provider.list_resources(scope, resource_group=rg)
+        filtered = [r for r in all_resources if r.type.lower() == type_filter]
+        return _json_response(serialize_resource_list(filtered))
+
+    def _handle_resources_by_subscription(
+        self, request: Request, *, sub: str, ns: str, rtype: str
+    ) -> Response:
+        scope = AzureScope.for_subscription(sub)
+        type_filter = f"{ns}/{rtype}".lower()
+        all_resources = self.provider.list_resources(scope)
         filtered = [r for r in all_resources if r.type.lower() == type_filter]
         return _json_response(serialize_resource_list(filtered))
 
