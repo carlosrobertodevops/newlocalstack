@@ -11,5 +11,9 @@
 - Sempre use o **context-mode** e o **caveman wenyan-ultra**.
 - use o context7 e uma skill de design-pattener.
 - Sempre o `.codegraph/` e o `graphify-out/`.
-- Corrija as traduções e coloque também o Espanhol, e que até os estados dos serviços tenham suas traduções e todas as partes do Projeto \*New LocalStack\*\*\*
+- Corrija as traduções e coloque também o Espanhol, e que até os estados dos serviços (`running`) tenham suas traduções em todas as partes do Projeto \*New LocalStack\*\*\*
 - E também mudar a nomeclatura do nosso Projeto de **LocalStack** Para **NewLocalStack** ou **nelocalstack**
+
+## testes
+
+- ao final verifique a consistencia do código para não haver quebras
