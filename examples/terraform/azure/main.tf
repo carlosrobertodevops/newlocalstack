@@ -12,13 +12,13 @@ terraform {
 # LocalStack TLS sidecar. The provider still calls Entra for tokens; that
 # is handled by our entra router on the same gateway.
 #
-# Auth via service principal env vars — no `az login` required:
-#   export ARM_CLIENT_ID=00000000-0000-0000-0000-000000000001
-#   export ARM_CLIENT_SECRET=test-secret
-#   export ARM_TENANT_ID=localstack-tenant
-#   export ARM_SUBSCRIPTION_ID=00000000-0000-0000-0000-000000000000
-#   export ARM_METADATA_HOST=localhost:4569
-#   export SSL_CERT_FILE=$(pwd)/../../../localstack-tls/certs/cert.pem
+# Required setup (do this BEFORE `terraform plan`):
+#   source ./env.sh
+#
+# `env.sh` exports ARM_* service-principal creds, points SSL_CERT_FILE at
+# the sidecar cert, and sets GODEBUG=x509usefallbackroots=1. On macOS the
+# fallback flag is sometimes ignored — run `./trust-cert-macos.sh` to add
+# the cert to the System keychain instead.
 provider "azurerm" {
   features {}
 

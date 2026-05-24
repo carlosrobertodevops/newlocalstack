@@ -30,20 +30,36 @@ Uses `http://localhost:4566` and the standard
 
 ```bash
 cd azure
-export ARM_CLIENT_ID=00000000-0000-0000-0000-000000000001
-export ARM_CLIENT_SECRET=test-secret
-export ARM_TENANT_ID=localstack-tenant
-export ARM_SUBSCRIPTION_ID=00000000-0000-0000-0000-000000000000
-export ARM_METADATA_HOST=localhost:4569
-export SSL_CERT_FILE="$PWD/../../../localstack-tls/certs/cert.pem"
+source env.sh           # exports ARM_* creds + SSL_CERT_FILE + GODEBUG fallback
 
 terraform init
+terraform plan
 terraform apply -auto-approve
 ```
 
-`SSL_CERT_FILE` trusts the self-signed cert that the TLS sidecar
-serves. Without it, the Go-based azurerm provider rejects the
-connection.
+`env.sh` sets every variable the `azurerm` provider needs and exposes
+the self-signed TLS sidecar cert via `SSL_CERT_FILE` and
+`GODEBUG=x509usefallbackroots=1`.
+
+### Cert trust on macOS
+
+Go's `crypto/x509` on macOS uses `Security.framework` and may ignore
+`SSL_CERT_FILE` even with the fallback flag set. If `terraform plan`
+still fails with:
+
+```
+tls: failed to verify certificate: x509: certificate signed by unknown authority
+```
+
+run the helper to add the cert to the System keychain as a trusted
+root (requires `sudo`):
+
+```bash
+./trust-cert-macos.sh         # add
+./trust-cert-macos.sh remove  # undo
+```
+
+On Linux, `SSL_CERT_FILE` alone is enough — no keychain step needed.
 
 ## GCP
 
