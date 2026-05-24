@@ -8,26 +8,36 @@ terraform {
   }
 }
 
-# The azurerm provider's `metadata_host` lets us route ARM calls at the
-# LocalStack TLS sidecar. The provider still calls Entra for tokens; that
-# is handled by our entra router on the same gateway.
+# LocalStack Azure emulator — fully self-contained.
 #
-# Required setup (do this BEFORE `terraform plan`):
-#   source ./env.sh
+# `metadata_host` routes ARM calls at the TLS sidecar (https://localhost:4569).
+# Token exchange goes to login.microsoftonline.com, which the sidecar cert
+# (mkcert-signed) also covers. Run `make setup-azure-tls` once per machine
+# to install the mkcert root CA into the OS trust store.
 #
-# `env.sh` exports ARM_* service-principal creds, points SSL_CERT_FILE at
-# the sidecar cert, and sets GODEBUG=x509usefallbackroots=1. On macOS the
-# fallback flag is sometimes ignored — run `./trust-cert-macos.sh` to add
-# the cert to the System keychain instead.
+# Credentials below are LocalStack dummy values — no `az login`, no env vars,
+# no `source env.sh` needed. `use_cli = false` disables AzureCLI fallback.
+variable "arm_client_id"       { default = "00000000-0000-0000-0000-000000000001" }
+variable "arm_client_secret"   { default = "test-secret" }
+variable "arm_tenant_id"       { default = "00000000-0000-0000-0000-000000000002" }
+variable "arm_subscription_id" { default = "00000000-0000-0000-0000-000000000000" }
+
 provider "azurerm" {
   features {}
 
   metadata_host = "localhost:4569"
 
+  client_id       = var.arm_client_id
+  client_secret   = var.arm_client_secret
+  tenant_id       = var.arm_tenant_id
+  subscription_id = var.arm_subscription_id
+
+  use_cli  = false
+  use_msi  = false
+  use_oidc = false
+
   skip_provider_registration = true
   storage_use_azuread        = false
-
-  # Use the env vars listed above for credentials.
 }
 
 resource "azurerm_resource_group" "demo" {
