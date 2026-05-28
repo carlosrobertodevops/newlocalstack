@@ -59,6 +59,7 @@ node_modules/
 **/lib/**
 
 !bin/docker-entrypoint.sh
+!localstack-ui/console/src/lib/**
 
 requirements.copy.txt
 .serverless/

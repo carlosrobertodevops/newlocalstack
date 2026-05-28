@@ -5,6 +5,8 @@ export interface ServiceMeta {
   label: string;
   path: string;
   healthId?: string;
+  pro?: boolean;
+  preview?: boolean;
 }
 
 export const SERVICES_BY_CLOUD: Record<CloudName, ServiceMeta[]> = {

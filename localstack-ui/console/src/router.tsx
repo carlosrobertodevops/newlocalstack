@@ -108,7 +108,7 @@ const gcpIndex = createRoute({ getParentRoute: () => gcpRoute, path: "/", compon
 const route = (
   parent: typeof awsRoute | typeof azureRoute | typeof gcpRoute,
   path: string,
-  Component: React.ComponentType,
+  Component: () => React.ReactNode,
 ) =>
   createRoute({ getParentRoute: () => parent, path, component: Component });
 
