@@ -17,10 +17,10 @@ Combina visão conceitual + cheatsheet comando-a-comando.
 | Provider GCP (registry)           | —                                  | `CloudRegistry` + GCP skin no console                          |
 | Endpoints `_localstack/console/*` | —                                  | `cli`, `iac`, `iac/preview`, `sessions/<id>/log`               |
 | Endpoint `_localstack/clouds`     | —                                  | Lista clouds registradas + health                              |
-| Bridge CLI host (`:4578`)         | —                                  | `bin/console-cli-bridge` (aiohttp)                             |
+| Bridge CLI host (`:4578`)         | —                                  | `scripts/bin/console-cli-bridge` (aiohttp)                     |
 | Console SPA                       | —                                  | `localstack-ui/console/` (React 19 + Vite + Tailwind + shadcn) |
 
-**Nunca use `image: localstack/localstack` no `docker-compose.yml`** — você
+**Nunca use `image: localstack/localstack` no `docker/compose.yml`** — você
 perde os endpoints do console e o registry multi-cloud. O compose já vem
 apontado para `${LOCALSTACK_IMAGE:-localstack/localstack-custom}`.
 
@@ -218,7 +218,7 @@ make console-bridge-install
 make console-bridge
 
 # Background (sem make)
-nohup bin/console-cli-bridge --host 127.0.0.1 --port 4578 > bridge.log 2>&1 &
+nohup scripts/bin/console-cli-bridge --host 127.0.0.1 --port 4578 > bridge.log 2>&1 &
 echo $! > bridge.pid
 
 # Healthcheck
@@ -372,8 +372,8 @@ aws s3 ls
 ### 13.3. Azure CLI
 
 ```bash
-bin/azurelocal group list --output table
-bin/azurelocal storage account list
+scripts/bin/azurelocal group list --output table
+scripts/bin/azurelocal storage account list
 ```
 
 ### 13.4. gcloud

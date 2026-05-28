@@ -15,7 +15,7 @@ Exemplos: [`examples/serverless/`](../examples/serverless/).
 ## Pré-requisitos
 
 ```bash
-docker-compose up -d
+docker-compose -f docker/compose.yml up -d
 npm install -g serverless@3
 ```
 
@@ -58,7 +58,7 @@ Status: **parcial**. O plugin `serverless-azure-functions` é third-party e foi 
 Setup (uma vez por máquina):
 
 ```bash
-make setup-azure-tls     # mkcert + cert TLS sidecar
+make setup-azure-tls     # mkcert + cert TLS sidecar do docker/compose.yml
 ```
 
 Variáveis (em `env.sh`):

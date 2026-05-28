@@ -49,7 +49,7 @@ The basic steps include:
 We generally recommend using this command to build the `localstack/localstack` Docker image locally (works on Linux/macOS):
 
 ```bash
-IMAGE_NAME="localstack/localstack" ./bin/docker-helper.sh build
+IMAGE_NAME="localstack/localstack" ./scripts/bin/docker-helper.sh build
 ```
 
 ### Additional Dependencies for running LocalStack in Host Mode

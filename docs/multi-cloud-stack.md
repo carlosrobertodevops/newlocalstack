@@ -18,7 +18,7 @@ Este documento cobre:
 | Azure | `:4569`          | `:443` (via sidecar `localstack-tls`) | TLS necessário para `terraform-provider-azurerm` (rejeita URLs com porta) |
 | GCP   | `:4566`          | —                        | Compartilha o edge AWS via roteador multi-cloud |
 
-`docker-compose.yml` já sobe ambos os contêineres (`localstack-main` + `localstack-tls`). O roteamento multi-cloud é decidido em `localstack-core/localstack/aws/handlers/multi_cloud.py`.
+`docker/compose.yml` já sobe ambos os contêineres (`localstack-main` + `localstack-tls`). O roteamento multi-cloud é decidido em `localstack-core/localstack/aws/handlers/multi_cloud.py`.
 
 ## 2. Caminhos de criação
 

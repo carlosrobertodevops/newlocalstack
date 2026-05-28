@@ -23,7 +23,7 @@ localstack-core/localstack/
 | ----------------- | ------------------------------------ | -------------------- |
 | Python            | `>=3.10`                             | `pyproject.toml:13`  |
 | boto3 / botocore  | `==1.42.59` (pin para o gerador ASF) | `CLAUDE.md`          |
-| Docker (opcional) | qualquer versão recente              | `docker-compose.yml` |
+| Docker (opcional) | qualquer versão recente              | `docker/compose.yml` |
 | Make              | GNU make 3.81+                       | `Makefile`           |
 
 Setup inicial (cria `.venv/` automaticamente):
@@ -47,13 +47,13 @@ make start
 - Porta padrão: **`:4566`** (gateway de edge, ver `localstack-core/localstack/platform/runtime/runtime.py:115`).
 - Sobrescrita: `GATEWAY_LISTEN=0.0.0.0:4566`.
 
-### 2.2. Via docker-compose (caminho de imagem)
+### 2.2. Via docker-compose (caminho de imagem Docker)
 
 ```bash
 docker compose up
 ```
 
-- Mapeia `127.0.0.1:4566` + faixa `4510-4559` para serviços externos (ver `docker-compose.yml`).
+- Mapeia `127.0.0.1:4566` + faixa `4510-4559` para serviços externos (ver `docker/compose.yml`).
 - Use quando precisar testar a imagem `localstack/localstack` empacotada.
 
 ### 2.3. Variáveis úteis

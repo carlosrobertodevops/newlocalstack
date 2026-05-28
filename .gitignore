@@ -17,10 +17,16 @@ security/secret-scanning/
 .cache
 .filesystem
 
+# proteger o projeto
+.claude/
+.git-blame-ignore-revs
+CLAUDE.md
+AGENTS.md
+DOCKER.MD
+
 /infra/
 localstack/infra/
 
-/graphify-out/
 /.codegraph/
 
 /node_modules/

@@ -23,17 +23,17 @@ Working example: [`examples/terraform/azure/main.tf`](../examples/terraform/azur
 make setup-azure-tls
 
 # 2. Bring up the stack (LocalStack + nginx TLS sidecar)
-docker-compose up -d
+docker-compose -f docker/compose.yml up -d
 
 # 3. /etc/hosts entries for the storage account name used in main.tf
-bin/azure-register-host tflocalstackstor
+scripts/bin/azure-register-host tflocalstackstor
 ```
 
 What each step does:
 
-1. `bin/setup-azure-tls` installs mkcert's local CA into your OS trust store and issues a cert with SANs covering all storage subdomains plus `management.azure.com`, `login.microsoftonline.com`, `graph.microsoft.com`. Go's TLS stack (used by `terraform-provider-azurerm`) then trusts the LocalStack sidecar without `SSL_CERT_FILE`.
-2. `docker-compose.yml` exposes the TLS sidecar (`localstack-tls`) on `127.0.0.1:4569` AND `127.0.0.1:443`. Port 443 is required because `hashicorp/go-azure-sdk` rejects storage URLs that include an explicit port.
-3. `bin/azure-register-host <account>` writes `127.0.0.1 <account>.blob.core.windows.net` (and the queue/table/file/dfs/web subdomains) to `/etc/hosts`. The Azure SDK hardcodes the `core.windows.net` suffix, so the storage host has to resolve to the sidecar by name.
+1. `make setup-azure-tls` installs mkcert's local CA into your OS trust store and issues a cert with SANs covering all storage subdomains plus `management.azure.com`, `login.microsoftonline.com`, `graph.microsoft.com`. Go's TLS stack (used by `terraform-provider-azurerm`) then trusts the LocalStack sidecar without `SSL_CERT_FILE`.
+2. `docker/compose.yml` exposes the TLS sidecar (`localstack-tls`) on `127.0.0.1:4569` AND `127.0.0.1:443`. Port 443 is required because `hashicorp/go-azure-sdk` rejects storage URLs that include an explicit port.
+3. `scripts/bin/azure-register-host <account>` writes `127.0.0.1 <account>.blob.core.windows.net` (and the queue/table/file/dfs/web subdomains) to `/etc/hosts`. The Azure SDK hardcodes the `core.windows.net` suffix, so the storage host has to resolve to the sidecar by name.
 
 ## Run
 
@@ -157,4 +157,4 @@ Expected: `"AzureCloud"`, `"AAD"`, `"common"`. If you edited `azure/gateway.py`,
 - No real authentication. Any non-empty bearer token is accepted; `client_secret` is not verified.
 - `listKeys` returns deterministic dummy keys (`AAAA…`); do not embed them in real Azure clients expecting parity with a real account.
 - Queue / table / file data planes are partial — control plane works, full message/row CRUD is in progress (`docs/superpowers/plans/2026-05-22-azure-services-parity.md`).
-- Persistence across container restarts depends on `PERSISTENCE=1` (set in `docker-compose.yml`).
+- Persistence across container restarts depends on `PERSISTENCE=1` (set in `docker/compose.yml`).

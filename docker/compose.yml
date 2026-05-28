@@ -17,10 +17,10 @@ services:
       # Permite que CORS responda mesmo para sub-domínios *.orb.local (dev only).
       - DISABLE_CORS_CHECKS=${DISABLE_CORS_CHECKS:-1}
     volumes:
-      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "${LOCALSTACK_VOLUME_DIR:-../volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
       # Init hooks (ready.d) — cria buckets default p/ evitar 404 NoSuchBucket em dev
-      - "./localstack-init:/etc/localstack/init"
+      - "../localstack-init:/etc/localstack/init"
       # NOTE: do NOT bind-mount localstack-core/localstack subdirs here. The
       # editable install resolves the `localstack` namespace package across
       # multiple paths (incl. /usr/lib/localstack/python-packages), and
@@ -39,9 +39,9 @@ services:
     volumes:
       # Serves the built console SPA (run `make console-build` to populate dist/).
       # legacy.html is copied from console/public/ into dist/ by Vite at build time.
-      - "./localstack-ui/console/dist:/usr/share/nginx/html:ro"
+      - "../localstack-ui/console/dist:/usr/share/nginx/html:ro"
       # Proxies /_localstack/* → localstack:4566 and /_bridge/* → host:4578.
-      - "./localstack-ui/console/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "../localstack-ui/console/nginx.conf:/etc/nginx/nginx.conf:ro"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -81,8 +81,8 @@ services:
       dev.orbstack.https-port: "4569"
       dev.orbstack.http-port: "80"
     volumes:
-      - "./localstack-tls/nginx.conf:/etc/nginx/nginx.conf:ro"
-      - "./localstack-tls/certs:/etc/nginx/certs:ro"
+      - "../localstack-tls/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "../localstack-tls/certs:/etc/nginx/certs:ro"
     depends_on:
       - localstack
     restart: unless-stopped

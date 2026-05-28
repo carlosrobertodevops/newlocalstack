@@ -5,7 +5,7 @@ set -eo pipefail
 shopt -s nullglob
 
 # global defaults
-DOCKERFILE=${DOCKERFILE-"Dockerfile"}
+DOCKERFILE=${DOCKERFILE-"docker/Dockerfile"}
 DEFAULT_TAG=${DEFAULT_TAG-"latest"}
 DOCKER_BUILD_CONTEXT=${DOCKER_BUILD_CONTEXT-"."}
 
@@ -140,7 +140,7 @@ function cmd-build() {
     if [ ! -f "pyproject.toml" ]; then
       echo "No pyproject.toml found, setuptools_scm will not be able to retrieve configuration."
     fi
-    if [ -z "$DOCKERFILE" ]; then DOCKERFILE=Dockerfile; fi
+    if [ -z "$DOCKERFILE" ]; then DOCKERFILE=docker/Dockerfile; fi
     # by default we load the result to the docker daemon
     if [ "$DOCKER_BUILD_FLAGS" = "" ]; then DOCKER_BUILD_FLAGS="--load"; fi
 

@@ -3,13 +3,13 @@
 Como apontar os CLIs oficiais (`aws`, `az`, `gcloud`) para o emulador local
 deste fork. Em todos os casos, o endpoint padrão é `http://localhost:4566`.
 
-Os wrappers vivem em `bin/`:
+Os wrappers vivem em `scripts/bin/`:
 
-| Cloud | Wrapper           | CLI exigido | Notas                                              |
-|-------|-------------------|-------------|----------------------------------------------------|
-| AWS   | `bin/awslocal-dev`| `aws`       | Equivalente leve a `awslocal` (sem pip)            |
-| Azure | `bin/azurelocal`  | `az`        | Registra perfil `LocalStack` em `az cloud`         |
-| GCP   | `bin/gcloudlocal` | `gcloud`    | Exporta `CLOUDSDK_API_ENDPOINT_OVERRIDES_*`        |
+| Cloud | Wrapper               | CLI exigido | Notas                                              |
+|-------|----------------------|-------------|----------------------------------------------------|
+| AWS   | `scripts/bin/awslocal-dev`| `aws`       | Equivalente leve a `awslocal` (sem pip)            |
+| Azure | `scripts/bin/azurelocal`  | `az`        | Registra perfil `LocalStack` em `az cloud`         |
+| GCP   | `scripts/bin/gcloudlocal` | `gcloud`    | Exporta `CLOUDSDK_API_ENDPOINT_OVERRIDES_*`        |
 
 > Pré-requisito comum: o container deve estar de pé
 > (`docker compose up -d`) e respondendo em `http://localhost:4566`.
@@ -22,10 +22,10 @@ O CLI da AWS aceita `--endpoint-url` ou `AWS_ENDPOINT_URL` nativamente.
 
 ```bash
 # Wrapper
-bin/awslocal-dev s3 ls
-bin/awslocal-dev s3 mb s3://demo
-bin/awslocal-dev sqs list-queues
-bin/awslocal-dev lambda list-functions
+scripts/bin/awslocal-dev s3 ls
+scripts/bin/awslocal-dev s3 mb s3://demo
+scripts/bin/awslocal-dev sqs list-queues
+scripts/bin/awslocal-dev lambda list-functions
 
 # Equivalente manual
 export AWS_ENDPOINT_URL=http://localhost:4566
@@ -45,10 +45,10 @@ O `az` não tem `--endpoint-url`. A integração depende do mecanismo
 **custom cloud** (`az cloud register`). O wrapper faz isso uma vez.
 
 ```bash
-bin/azurelocal cloud show --name LocalStack
-bin/azurelocal account list
-bin/azurelocal storage account list
-bin/azurelocal group list
+scripts/bin/azurelocal cloud show --name LocalStack
+scripts/bin/azurelocal account list
+scripts/bin/azurelocal storage account list
+scripts/bin/azurelocal group list
 ```
 
 O que o wrapper configura ao detectar primeira execução:
@@ -87,10 +87,10 @@ O `gcloud` lê overrides por API via env
 serviços hoje implementados.
 
 ```bash
-bin/gcloudlocal storage buckets list
-bin/gcloudlocal pubsub topics list
-bin/gcloudlocal functions list
-bin/gcloudlocal iam service-accounts list
+scripts/bin/gcloudlocal storage buckets list
+scripts/bin/gcloudlocal pubsub topics list
+scripts/bin/gcloudlocal functions list
+scripts/bin/gcloudlocal iam service-accounts list
 ```
 
 O que o wrapper define:
