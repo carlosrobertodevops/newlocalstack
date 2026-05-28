@@ -11,6 +11,7 @@ import { AzureOverview } from "@/routes/azure/overview";
 import { GcpOverview } from "@/routes/gcp/overview";
 import { UnifiedOverview } from "@/routes/overview";
 import { AwsStack, AzureStack, GcpStack } from "@/routes/stack";
+import { UnifiedStack } from "@/routes/UnifiedStack";
 import {
   S3List,
   SqsList,
@@ -293,9 +294,19 @@ const awsStack = route(awsRoute, "stack", AwsStack);
 const azureStack = route(azureRoute, "stack", AzureStack);
 const gcpStack = route(gcpRoute, "stack", GcpStack);
 
+const unifiedStack = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "stack",
+  component: UnifiedStack,
+  validateSearch: (search: Record<string, unknown>) => ({
+    cloud: typeof search.cloud === "string" ? search.cloud : undefined,
+  }),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   unifiedOverviewRoute,
+  unifiedStack,
   awsRoute.addChildren([
     awsIndex,
     awsOverview,

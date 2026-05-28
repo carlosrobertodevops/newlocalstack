@@ -43,6 +43,19 @@ export function Sidebar() {
       <ul className="space-y-0.5 mb-2">
         <li>
           <Link
+            to="/stack"
+            search={{ cloud }}
+            className="group flex items-center justify-between rounded-md px-2 py-1.5 sidebar-link font-semibold"
+            activeProps={{ className: "sidebar-link-active" }}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <ServiceIcon id="cloud" cloud={cloud} />
+              <span className="truncate">{t("sidebar.multi_cloud_stack") ?? "Multi-Cloud Stack"}</span>
+            </span>
+          </Link>
+        </li>
+        <li>
+          <Link
             to="/overview"
             params={{}}
             className="group flex items-center justify-between rounded-md px-2 py-1.5 sidebar-link font-semibold"

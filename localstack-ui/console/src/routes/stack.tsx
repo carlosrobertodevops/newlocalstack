@@ -363,7 +363,7 @@ function StackRow({
 // CloudStack
 // ---------------------------------------------------------------------------
 
-function CloudStack({ cloud }: { cloud: CloudName }) {
+export function CloudStack({ cloud }: { cloud: CloudName }) {
   const { t } = useI18n();
   const { subscription, project } = useCloud();
   const services = SERVICES_BY_CLOUD[cloud];
