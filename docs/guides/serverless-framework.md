@@ -2,7 +2,7 @@
 
 Como usar o **Serverless Framework v3** contra a emulação multi-cloud do LocalStack — AWS, Azure e GCP.
 
-Exemplos: [`examples/serverless/`](../examples/serverless/).
+Exemplos: [`examples/serverless/`](../../examples/serverless/).
 
 ## Status por provider
 
@@ -107,7 +107,7 @@ cd examples/serverless/gcp
 npm install serverless-google-cloudfunctions
 ```
 
-Crie `key.json` dummy (template em [`examples/serverless/gcp/README.md`](../examples/serverless/gcp/README.md)).
+Crie `key.json` dummy (template em [`examples/serverless/gcp/README.md`](../../examples/serverless/gcp/README.md)).
 
 Deploy:
 

@@ -168,7 +168,7 @@ docker compose restart localstack-tls
 
 ### Terraform
 
-Exemplos em [`examples/terraform/`](../examples/terraform/) — um
+Exemplos em [`examples/terraform/`](../../examples/terraform/) — um
 `main.tf` por cloud, mostrando provider config + recursos básicos.
 
 | Cloud | Mecanismo de override                                  |
@@ -178,7 +178,7 @@ Exemplos em [`examples/terraform/`](../examples/terraform/) — um
 | GCP   | `provider "google" { storage_custom_endpoint = ... }`   |
 
 Variáveis necessárias por cloud — ver
-[`examples/terraform/README.md`](../examples/terraform/README.md).
+[`examples/terraform/README.md`](../../examples/terraform/README.md).
 
 **Azure TLS — fix definitivo do x509**:
 
@@ -195,11 +195,11 @@ make setup      # roda trust + init
 make plan && make apply
 ```
 
-Ver [`examples/terraform/azure/README.md`](../examples/terraform/azure/README.md).
+Ver [`examples/terraform/azure/README.md`](../../examples/terraform/azure/README.md).
 
 ### Serverless Framework
 
-Exemplos em [`examples/serverless/`](../examples/serverless/). Plugins
+Exemplos em [`examples/serverless/`](../../examples/serverless/). Plugins
 exigidos:
 
 - AWS → `serverless-localstack`

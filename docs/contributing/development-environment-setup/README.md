@@ -35,7 +35,7 @@ The basic steps include:
 > Depending on your system, some `pip` modules may require additional native libs installed.
 
 > [!NOTE]
-> Consider running `make install-dev-types` to enable type hinting for efficient [integration tests](../testing/integration-tests/README.md) development.
+> Consider running `make install-dev-types` to enable type hinting for efficient [integration tests](../../reference/testing/integration-tests/README.md) development.
 5. Start localstack in host mode using `make start`
 
 <div align="left">
@@ -56,7 +56,7 @@ IMAGE_NAME="localstack/localstack" ./scripts/bin/docker-helper.sh build
 
 In host mode, additional dependencies (e.g., Java) are required for developing certain AWS-emulated services (e.g., DynamoDB).
 The required dependencies vary depending on the service, [Configuration](https://docs.localstack.cloud/references/configuration/), operating system, and system architecture (i.e., x86 vs ARM).
-Refer to our official [Dockerfile](https://github.com/localstack/localstack/blob/main/Dockerfile) and our [package installer LPM](Concepts/index.md#packages-and-installers) for more details.
+Refer to our official [Dockerfile](https://github.com/localstack/localstack/blob/main/Dockerfile) and our [package installer LPM](../../reference/concepts/README.md#packages-and-installers) for more details.
 
 #### Root Permissions
 

@@ -619,7 +619,7 @@ git diff --name-only main...HEAD
 
 ### 20.1. Repositório
 
-- Plano de design: [`multi-cloud-console-plan.md`](./multi-cloud-console-plan.md)
+- Plano de design: [`multi-cloud-console-plan.md`](../multi-cloud-console-plan.md)
 - Bridge CLI: `bin/console-cli-bridge.md`
 - Convenções de contribuição: `localstack-ui/console/CONTRIBUTING.md`
 - Endpoints internos: `localstack-core/localstack/aws/services/internal.py`

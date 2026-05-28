@@ -28,7 +28,7 @@ Endpoints:
 ## Documentation
 
 - [Architecture & Concepts](docs/reference/concepts/README.md)
-- [Testing Guide](docs/testing/README.md)
+- [Testing Guide](docs/reference/testing/README.md)
 - [Azure + Terraform](docs/guides/azure-terraform.md)
 - [GCP + Terraform](docs/guides/gcp-terraform.md)
 - [Serverless Framework](docs/guides/serverless-framework.md)

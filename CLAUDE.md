@@ -138,5 +138,5 @@ Examples (each is self-contained, no real creds required):
 ## References
 
 - Architecture deep-dive: `docs/localstack-concepts/README.md`
-- Testing docs: `docs/testing/`
+- Testing docs: `docs/reference/testing/`
 - `AGENTS.md` — additional contributor agent notes (commands, project structure, parity-test best practices)
