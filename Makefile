@@ -196,4 +196,68 @@ clean-dist:				  ## Clean up python distribution directories
 	rm -rf dist/ build/
 	rm -rf localstack-core/*.egg-info
 
-.PHONY: usage freeze install-basic install-runtime install-test install-dev install entrypoints dist publish coveralls start docker-run-tests docker-cp-coverage test test-coverage lint lint-modified format format-modified asf-regenerate init-precommit clean clean-dist upgrade-pinned-dependencies
+# ============================================================================
+# newlocalstack — sobe TODA a plataforma com `make newlocalstack`
+# ----------------------------------------------------------------------------
+# Sequencia EXATA (na ordem):
+#   1) make install
+#   2) source .venv/bin/activate
+#   3) make entrypoints            (regenera plux.ini — OBRIGATORIO antes do
+#                                   docker-build, senao lpm install falha com
+#                                   "unable to locate installer for package
+#                                   lambda-runtime" pois o Dockerfile copia
+#                                   plux.ini do contexto)
+#   4) IMAGE_NAME=localstack/localstack-custom make docker-build
+#   5) docker compose up -d
+#
+# O que cada passo faz:
+#   [1] make install
+#       Cria .venv (Python >=3.10) e instala localstack-core[dev]
+#       (deps de runtime + dev + test). Idempotente.
+#   [2] source .venv/bin/activate
+#       Ativa o venv para os passos seguintes (executado inline via bash -c
+#       porque cada linha do recipe roda em sub-shell separada).
+#   [3] make entrypoints
+#       Roda `python -m plux entrypoints` e popula plux.ini com todos os
+#       entry-point groups (localstack.packages, localstack.hooks, etc).
+#       Sem isto o Dockerfile linha 154 (lpm install lambda-runtime jpype-
+#       jsonata dynamodb-local) aborta a build.
+#   [4] IMAGE_NAME=localstack/localstack-custom make docker-build
+#       Constroi a imagem Docker do fork (bin/docker-helper.sh build).
+#       Tag final: localstack/localstack-custom:latest. PLATFORM
+#       detectado automaticamente (arm64 em Apple Silicon).
+#   [5] docker compose up -d
+#       Sobe os servicos definidos em docker-compose.yml.
+#
+# Servicos que sobem (docker-compose.yml):
+#   localstack       :4566           Gateway AWS + Azure + GCP.
+#                                    Endpoints _localstack/* (health,
+#                                    clouds, console/iac, console/cli).
+#                                    Imagem: localstack/localstack-custom.
+#   localstack-ui    :4577           Console SPA (React + Vite + shadcn)
+#                                    servida por nginx a partir de
+#                                    ./localstack-ui/console/dist.
+#   localstack-tls   :443 + :4569    Sidecar nginx com TLS para Azure
+#                                    (terraform-provider-azurerm exige
+#                                    HTTPS sem porta custom).
+#                                    Requer certs em ./localstack-tls/certs
+#                                    (ja presentes; opcional rodar
+#                                    `make setup-azure-tls` 1x para CA root).
+#
+# URLs finais:
+#   http://localhost:4566/_localstack/health
+#   http://localhost:4566/_localstack/clouds
+#   http://localhost:4577                  (console)
+# ============================================================================
+
+newlocalstack:  ## Sobe TODA a plataforma (venv + imagem custom + docker compose up -d)
+	$(MAKE) install
+	bash -c 'source .venv/bin/activate && $(MAKE) entrypoints && IMAGE_NAME=localstack/localstack-custom $(MAKE) docker-build'
+	docker compose up -d
+	@echo ""
+	@echo "  gateway : http://localhost:4566        (AWS/Azure/GCP)"
+	@echo "  console : http://localhost:4577        (UI)"
+	@echo "  clouds  : http://localhost:4566/_localstack/clouds"
+	@echo "  health  : http://localhost:4566/_localstack/health"
+
+.PHONY: usage freeze install-basic install-runtime install-test install-dev install entrypoints dist publish coveralls start docker-run-tests docker-cp-coverage test test-coverage lint lint-modified format format-modified asf-regenerate init-precommit clean clean-dist upgrade-pinned-dependencies newlocalstack
