@@ -32,12 +32,12 @@ Exemplos em [`examples/terraform/`](../examples/terraform/). Cada `main.tf` é a
 
 Guias específicos:
 
-- [`docs/azure-terraform.md`](azure-terraform.md)
-- [`docs/gcp-terraform.md`](gcp-terraform.md)
+- [`docs/guides/azure-terraform.md`](../guides/azure-terraform.md)
+- [`docs/guides/gcp-terraform.md`](../guides/gcp-terraform.md)
 
 ### 2.3 Via Serverless Framework
 
-Exemplos em [`examples/serverless/`](../examples/serverless/). Cobertura variada — AWS é completo, Azure e GCP são parciais. Detalhes em [`docs/serverless-framework.md`](serverless-framework.md).
+Exemplos em [`examples/serverless/`](../examples/serverless/). Cobertura variada — AWS é completo, Azure e GCP são parciais. Detalhes em [`docs/guides/serverless-framework.md`](../guides/serverless-framework.md).
 
 ### 2.4 Via console
 
@@ -126,7 +126,7 @@ Layout:
 - Botão **"Limpar Stack"** (vermelho, no header) → confirmação modal → chama `POST /_localstack/clouds/<cloud>/stack/reset`.
 - Auto-refresh: react-query refetch a cada 20s.
 
-Detalhes em [`docs/console-stack-view.md`](console-stack-view.md).
+Detalhes em [`docs/guides/console-stack-view.md`](../guides/console-stack-view.md).
 
 ## 5. Isolamento entre provedores
 

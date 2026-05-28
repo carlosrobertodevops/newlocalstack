@@ -99,4 +99,4 @@ curl -X POST http://localhost:4566/_localstack/clouds/gcp/stack/reset \
 
 - Gateway GCP: `localstack-core/localstack/gcp/gateway.py`
 - Stores: `localstack-core/localstack/gcp/stores.py`
-- Reset isolado: ver [`docs/multi-cloud-stack.md`](multi-cloud-stack.md#5-isolamento-entre-provedores)
+- Reset isolado: ver [`docs/guides/multi-cloud-stack.md`](../guides/multi-cloud-stack.md#5-isolamento-entre-provedores)

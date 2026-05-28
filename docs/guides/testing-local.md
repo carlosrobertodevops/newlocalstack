@@ -356,7 +356,7 @@ Sem isso, o registry silenciosamente não encontra o provider novo.
 
 ## 10. Referências
 
-- Visão geral da arquitetura: `docs/localstack-concepts/README.md`
-- Testes (parity, snapshot, integração): `docs/testing/`
+- Visão geral da arquitetura: `docs/reference/concepts/README.md`
+- Testes (parity, snapshot, integração): `docs/reference/testing/`
 - Roteiro multi-cloud: `docs/superpowers/plans/2026-05-22-multi-cloud-organization.md`
 - Notas de contribuição: `AGENTS.md`, `CLAUDE.md`

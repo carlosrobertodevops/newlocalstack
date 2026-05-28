@@ -52,4 +52,4 @@ curl -X POST http://localhost:4566/_localstack/clouds/gcp/stack/reset \
 | `google_secret_manager_secret`   | parcial |
 | `google_cloudfunctions2_function`| parcial |
 
-Mais detalhes: `docs/multi-cloud-stack.md`.
+Mais detalhes: `docs/guides/multi-cloud-stack.md`.

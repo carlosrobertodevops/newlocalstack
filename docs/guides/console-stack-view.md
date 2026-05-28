@@ -75,11 +75,11 @@ Princípio: limpar uma cloud **nunca** toca as outras.
 - Azure reset chama `AzureGateway.stores.clear()` + clear dos data planes (`storage_provider.data_store`, `cosmos_provider.data_store`, `functions_registry._apps`).
 - GCP reset chama `GcpGateway.stores.clear()` + clear dos data planes (storage / pubsub / firestore / iam) + `functions_provider.registry`.
 
-Cada gateway tem stores próprios — não há global compartilhado. Detalhes em [`docs/multi-cloud-stack.md`](multi-cloud-stack.md#5-isolamento-entre-provedores).
+Cada gateway tem stores próprios — não há global compartilhado. Detalhes em [`docs/guides/multi-cloud-stack.md`](../guides/multi-cloud-stack.md#5-isolamento-entre-provedores).
 
 ## Pointers
 
 - Backend: `localstack-core/localstack/aws/services/_localstack_stack.py`
 - Frontend page: `localstack-ui/console/src/routes/stack.tsx`
 - API helpers: `localstack-ui/console/src/lib/api/stack.ts`
-- Doc geral: [`docs/multi-cloud-stack.md`](multi-cloud-stack.md)
+- Doc geral: [`docs/guides/multi-cloud-stack.md`](../guides/multi-cloud-stack.md)

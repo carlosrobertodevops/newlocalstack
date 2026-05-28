@@ -8,7 +8,7 @@ Demos auto-contidos para exercitar a emulação multi-cloud do LocalStack via CL
 | Azure    | `azure/`       | `curl` (não `az`)      | `az` não tem endpoint override por serviço; curl direto |
 | GCP      | `gcp/`         | `curl` (não `gcloud`)  | `gcloud` tem override parcial; curl é mais previsível |
 
-Guia maior: [`docs/cli-integration.md`](../../docs/cli-integration.md).
+Guia maior: [`docs/guides/cli-integration.md`](../../docs/guides/cli-integration.md).
 
 ## Pré-requisitos comuns
 

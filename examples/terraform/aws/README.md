@@ -41,4 +41,4 @@ Equivalente ao botão vermelho **"Limpar Stack"** no console.
 
 - `connection refused`: LocalStack offline. Suba com `docker-compose up -d`.
 - `RDS / EKS lento`: alguns recursos de gestão demoram ao serem emulados pela primeira vez; reexecute o plan.
-- Mais detalhes em `docs/multi-cloud-stack.md`.
+- Mais detalhes em `docs/guides/multi-cloud-stack.md`.

@@ -178,5 +178,5 @@ For common resource fixtures (S3 buckets, KMS keys, etc.), check `localstack-cor
 ## Reference
 
 - **Testing Docs:** https://github.com/localstack/localstack/tree/main/docs/testing
-- **Architecture:** https://github.com/localstack/localstack/blob/main/docs/localstack-concepts/README.md
+- **Architecture:** https://github.com/localstack/localstack/blob/main/docs/reference/concepts/README.md
 - **Common Fixtures:** `localstack-core/localstack/testing/pytest/fixtures.py`

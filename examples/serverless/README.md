@@ -8,7 +8,7 @@ Exemplos de deploy do **Serverless Framework v3** contra a emulação multi-clou
 | Azure    | `azure/`       | `serverless-azure-functions`       | Parcial — HTTP triggers |
 | GCP      | `gcp/`         | `serverless-google-cloudfunctions` | Parcial — HTTP triggers |
 
-Guia detalhado: [`docs/serverless-framework.md`](../../docs/serverless-framework.md).
+Guia detalhado: [`docs/guides/serverless-framework.md`](../../docs/guides/serverless-framework.md).
 
 ## Pré-requisitos comuns
 

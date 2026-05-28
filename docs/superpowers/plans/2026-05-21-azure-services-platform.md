@@ -1090,7 +1090,7 @@ git commit -m "ci(azure): add manual azure alpha smoke workflow"
 
 `terraform-provider-azurerm` v3.110+ now completes `plan` + `apply` against the in-repo Azure emulator without any real Azure subscription or `az login`. End-to-end resources confirmed: `azurerm_resource_group`, `azurerm_storage_account`, `azurerm_storage_container`.
 
-User-facing guide: [`docs/azure-terraform.md`](../../azure-terraform.md). Working Terraform module: [`examples/terraform/azure/main.tf`](../../../examples/terraform/azure/main.tf).
+User-facing guide: [`docs/guides/azure-terraform.md`](../../guides/azure-terraform.md). Working Terraform module: [`examples/terraform/azure/main.tf`](../../../examples/terraform/azure/main.tf).
 
 **Changes delivered**
 

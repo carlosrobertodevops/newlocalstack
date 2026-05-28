@@ -2,7 +2,7 @@
 
 Cria resource group, storage account e storage container contra a emulação Azure do LocalStack — sem `az login` nem env vars.
 
-Guia completo em [`docs/azure-terraform.md`](../../../docs/azure-terraform.md).
+Guia completo em [`docs/guides/azure-terraform.md`](../../../docs/guides/azure-terraform.md).
 
 ## Setup único
 
@@ -41,4 +41,4 @@ Equivalente ao botão **"Limpar Stack"** na aba Azure do console.
 
 ## Troubleshooting
 
-Erros comuns + mitigação em [`docs/azure-terraform.md`](../../../docs/azure-terraform.md#troubleshooting).
+Erros comuns + mitigação em [`docs/guides/azure-terraform.md`](../../../docs/guides/azure-terraform.md#troubleshooting).

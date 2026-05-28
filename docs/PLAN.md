@@ -155,7 +155,7 @@ Hoje: docs organizadas por tema (`development-environment-setup/`, `testing/`, `
 docs/
 ├── quickstart/          # 5 min para subir local
 ├── guides/              # terraform, serverless, multi-cloud, console
-├── reference/           # concepts/, testing/, cli-integration
+├── reference/           # concepts/, testing/, guides/cli-integration
 ├── contributing/        # CONTRIBUTING.md + dev-env-setup
 └── superpowers/         # roadmap (preservado)
 ```

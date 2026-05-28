@@ -41,7 +41,7 @@ cd /seu/projeto/functions
 func azure functionapp publish <name>
 ```
 
-Detalhes: [`docs/serverless-framework.md`](../../../docs/serverless-framework.md#azure).
+Detalhes: [`docs/guides/serverless-framework.md`](../../../docs/guides/serverless-framework.md#azure).
 
 ## Cleanup
 

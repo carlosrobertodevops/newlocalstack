@@ -100,7 +100,7 @@ Experimental Azure support lives under `localstack-core/localstack/azure/`. Reac
 
 **Terraform example.** `examples/terraform/azure/main.tf` is fully self-contained: dummy creds, `use_cli=use_msi=use_oidc=false`, `metadata_host = "localhost:4569"`, `skip_provider_registration=true`. Currently green for `azurerm_resource_group`, `azurerm_storage_account`, `azurerm_storage_container`.
 
-User-facing guide: `docs/azure-terraform.md`.
+User-facing guide: `docs/guides/azure-terraform.md`.
 
 ## Multi-cloud stack management
 

@@ -151,8 +151,8 @@ Ação **isolada por cloud**.
 
 ## Pointers
 
-- Visão geral multi-cloud: [`docs/multi-cloud-stack.md`](multi-cloud-stack.md)
-- Console: [`docs/console-stack-view.md`](console-stack-view.md)
+- Visão geral multi-cloud: [`docs/guides/multi-cloud-stack.md`](../guides/multi-cloud-stack.md)
+- Console: [`docs/guides/console-stack-view.md`](../guides/console-stack-view.md)
 - Plugins:
   - https://github.com/localstack/serverless-localstack
   - https://github.com/serverless/serverless-azure-functions
