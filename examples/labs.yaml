@@ -1,0 +1,105 @@
+labs:
+  - id: terraform-aws
+    cloud: aws
+    tool: terraform
+    title: "Terraform + LocalStack AWS"
+    description: "Cria S3 bucket, fila SQS, tabela DynamoDB, ECR, ECS, EKS, RDS e VPC contra a emulação AWS do LocalStack"
+    steps:
+      - "terraform init"
+      - "terraform plan"
+      - "terraform apply -auto-approve"
+    cleanup: "terraform destroy -auto-approve"
+    readme: "terraform/aws/README.md"
+
+  - id: terraform-azure
+    cloud: azure
+    tool: terraform
+    title: "Terraform + LocalStack Azure"
+    description: "Cria resource group, storage account e storage container contra a emulação Azure do LocalStack"
+    steps:
+      - "terraform init"
+      - "terraform plan"
+      - "terraform apply -auto-approve"
+    cleanup: "terraform destroy -auto-approve"
+    readme: "terraform/azure/README.md"
+
+  - id: terraform-gcp
+    cloud: gcp
+    tool: terraform
+    title: "Terraform + LocalStack GCP"
+    description: "Cria bucket Cloud Storage, tópico Pub/Sub e subscription contra a emulação GCP do LocalStack"
+    steps:
+      - "terraform init"
+      - "terraform plan"
+      - "terraform apply -auto-approve"
+    cleanup: "terraform destroy -auto-approve"
+    readme: "terraform/gcp/README.md"
+
+  - id: serverless-aws
+    cloud: aws
+    tool: serverless
+    title: "Serverless Framework — AWS contra LocalStack"
+    description: "Deploy de uma Lambda Python (HTTP + S3 trigger) + tabela DynamoDB"
+    steps:
+      - "npm install"
+      - "serverless deploy --stage dev"
+      - "serverless invoke --function hello --stage dev"
+    cleanup: "serverless remove --stage dev"
+    readme: "serverless/aws/README.md"
+
+  - id: serverless-azure
+    cloud: azure
+    tool: serverless
+    title: "Serverless Framework — Azure contra LocalStack"
+    description: "Azure Functions HTTP triggers contra LocalStack (suporte parcial via serverless-azure-functions)"
+    steps:
+      - "make setup-azure-tls"
+      - "npm install serverless-azure-functions"
+      - "serverless deploy --stage dev"
+    cleanup: "serverless remove --stage dev"
+    readme: "serverless/azure/README.md"
+
+  - id: serverless-gcp
+    cloud: gcp
+    tool: serverless
+    title: "Serverless Framework — GCP contra LocalStack"
+    description: "Cloud Functions HTTP triggers contra LocalStack com Pub/Sub"
+    steps:
+      - "npm install serverless-google-cloudfunctions"
+      - "serverless deploy --stage dev"
+      - "serverless invoke --function hello --stage dev"
+    cleanup: "serverless remove --stage dev"
+    readme: "serverless/gcp/README.md"
+
+  - id: cli-aws
+    cloud: aws
+    tool: cli
+    title: "AWS CLI LocalStack Demo"
+    description: "Demonstra interações AWS (S3, SQS, DynamoDB) via AWS CLI contra LocalStack"
+    steps:
+      - "bash demo.sh"
+      - "Verifica S3, SQS, DynamoDB via AWS CLI"
+    cleanup: "curl -X POST http://localhost:4566/_localstack/clouds/aws/stack/reset -H 'Content-Type: application/json' -d '{\"confirm\": true}'"
+    readme: "cli/aws/README.md"
+
+  - id: cli-azure
+    cloud: azure
+    tool: cli
+    title: "Azure CLI demo (curl-based)"
+    description: "Demonstra Storage Accounts e Blob Services via curl (sem az CLI)"
+    steps:
+      - "bash demo.sh"
+      - "Verifica Storage Accounts via curl (HTTP)"
+    cleanup: "curl -X POST http://localhost:4566/_localstack/clouds/azure/stack/reset -H 'Content-Type: application/json' -d '{\"confirm\": true}'"
+    readme: "cli/azure/README.md"
+
+  - id: cli-gcp
+    cloud: gcp
+    tool: cli
+    title: "GCP LocalStack CLI Demo"
+    description: "Demonstra Cloud Storage e Pub/Sub via curl (sem gcloud CLI)"
+    steps:
+      - "bash demo.sh"
+      - "Verifica Cloud Storage, Pub/Sub via curl (HTTP)"
+    cleanup: "curl -X POST http://localhost:4566/_localstack/clouds/gcp/stack/reset -H 'Content-Type: application/json' -d '{\"confirm\": true}'"
+    readme: "cli/gcp/README.md"

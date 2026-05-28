@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LocalStack Labs Catalog Schema",
+  "description": "Schema for validating labs.yaml structure",
+  "type": "object",
+  "required": ["labs"],
+  "properties": {
+    "labs": {
+      "type": "array",
+      "description": "List of lab definitions",
+      "items": {
+        "type": "object",
+        "required": ["id", "cloud", "tool", "title", "steps", "cleanup", "readme"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique lab identifier (format: tool-cloud)",
+            "pattern": "^[a-z0-9]+-[a-z0-9]+$"
+          },
+          "cloud": {
+            "type": "string",
+            "description": "Cloud provider",
+            "enum": ["aws", "azure", "gcp"]
+          },
+          "tool": {
+            "type": "string",
+            "description": "Infrastructure-as-Code tool",
+            "enum": ["terraform", "serverless", "cli"]
+          },
+          "title": {
+            "type": "string",
+            "description": "Human-readable lab title",
+            "minLength": 3,
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "description": "Brief description of what the lab demonstrates",
+            "minLength": 10,
+            "maxLength": 200
+          },
+          "steps": {
+            "type": "array",
+            "description": "List of steps to run the lab",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "cleanup": {
+            "type": "string",
+            "description": "Command to clean up resources created by the lab",
+            "minLength": 1
+          },
+          "readme": {
+            "type": "string",
+            "description": "Relative path to the README file",
+            "pattern": "^(terraform|serverless|cli)/(aws|azure|gcp)/README\\.md$"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": false
+}
