@@ -1,7 +1,11 @@
 .PHONY: console-install console-dev console-build console-lint console-test console-test-e2e console-bridge console-bridge-install
 
 console-install:          ## Install console SPA dependencies (bun)
-	cd localstack-ui/console && bun install
+	@if [ -z "$(FORCE)" ] && [ -d localstack-ui/console/node_modules ]; then \
+		echo "✓ console deps já instaladas (FORCE=1 make console-install para reinstalar)"; \
+	else \
+		cd localstack-ui/console && bun install; \
+	fi
 
 console-dev:              ## Run Vite dev server on :5173
 	cd localstack-ui/console && bun run dev
@@ -22,4 +26,9 @@ console-bridge:           ## Run the host-side CLI bridge worker on :4578
 	./scripts/bin/console-cli-bridge
 
 console-bridge-install:   ## Install the bridge worker requirements
-	$(PIP_CMD) install -r scripts/bin/console-cli-bridge.requirements.txt
+	@if [ -z "$(FORCE)" ] && [ -f .cache/.stamp-bridge ]; then \
+		echo "✓ console-bridge-install já instalado (FORCE=1 make console-bridge-install para reinstalar)"; \
+	else \
+		$(PIP_CMD) install -r scripts/bin/console-cli-bridge.requirements.txt \
+			&& mkdir -p .cache && touch .cache/.stamp-bridge; \
+	fi
