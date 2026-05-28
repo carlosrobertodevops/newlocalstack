@@ -5,7 +5,7 @@
 VENV_BIN     ?= python3
 VENV_DIR     ?= .venv
 VENV_ACTIVATE := $(VENV_DIR)/bin/activate
-VENV_RUN      := . $(VENV_ACTIVATE) &&
+VENV_RUN      := . $(VENV_ACTIVATE)
 PIP_CMD       := $(VENV_BIN) -m pip
 IMAGE_NAME    ?= localstack/localstack-custom
 DEFAULT_TAG   ?= latest

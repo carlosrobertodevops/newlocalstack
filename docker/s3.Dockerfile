@@ -29,10 +29,10 @@ RUN chmod 777 . && \
     touch /tmp/localstack/.marker
 
 # install the entrypoint script
-ADD bin/docker-entrypoint.sh /usr/local/bin/
+ADD scripts/bin/docker-entrypoint.sh /usr/local/bin/
 # add the shipped hosts file to prevent performance degredation in windows container mode on windows
 # (where hosts file is not mounted) See https://github.com/localstack/localstack/issues/5178
-ADD bin/hosts /etc/hosts
+ADD scripts/bin/hosts /etc/hosts
 
 # expose default environment
 # Set edge bind host so localstack can be reached by other containers
@@ -58,7 +58,7 @@ RUN --mount=type=cache,target=/root/.cache \
 # add files necessary to install all dependencies
 ADD Makefile pyproject.toml requirements-base-runtime.txt ./
 # add the localstack start scripts (necessary for the installation of the runtime dependencies, i.e. `pip install -e .`)
-ADD bin/localstack-supervisor bin/
+ADD scripts/bin/localstack-supervisor bin/
 
 # Install dependencies for running the LocalStack base runtime (for S3)
 RUN --mount=type=cache,target=/root/.cache \
@@ -78,7 +78,7 @@ ARG LOCALSTACK_BUILD_VERSION
 # add project files necessary to install all dependencies
 ADD Makefile pyproject.toml plux.ini requirements-base-runtime.txt ./
 # add the localstack start scripts (necessary for the installation of the runtime dependencies, i.e. `pip install -e .`)
-ADD bin/localstack-supervisor bin/
+ADD scripts/bin/localstack-supervisor bin/
 
 # add the code as late as possible
 ADD localstack-core/ /opt/code/localstack/localstack-core
