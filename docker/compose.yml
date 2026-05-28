@@ -17,7 +17,7 @@ services:
       # Permite que CORS responda mesmo para sub-domínios *.orb.local (dev only).
       - DISABLE_CORS_CHECKS=${DISABLE_CORS_CHECKS:-1}
     volumes:
-      - "${LOCALSTACK_VOLUME_DIR:-../volume}:/var/lib/localstack"
+      - "${LOCALSTACK_VOLUME_DIR:-../.cache/volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
       # Init hooks (ready.d) — cria buckets default p/ evitar 404 NoSuchBucket em dev
       - "../localstack-init:/etc/localstack/init"

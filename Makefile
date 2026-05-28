@@ -45,4 +45,5 @@ include make/lint.mk
 include make/asf.mk
 include make/docker.mk
 include make/setup.mk
+include make/compose.mk
 include make/clean.mk

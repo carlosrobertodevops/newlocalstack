@@ -37,11 +37,12 @@ make entrypoints        # gera plux.ini (re-execute após adicionar/remover plug
 
 ## 2. Subindo o runtime
 
-### 2.1. Via `make start` (recomendado para dev)
+### 2.1. Via `make start-runtime` (runtime in-process, recomendado para dev)
 
 ```bash
-make start
+make start-runtime
 # = python3 -m localstack.platform.runtime.main
+# (`make start` sobe a stack via docker compose)
 ```
 
 - Porta padrão: **`:4566`** (gateway de edge, ver `localstack-core/localstack/platform/runtime/runtime.py:115`).
@@ -310,7 +311,8 @@ Sem isso, o registry silenciosamente não encontra o provider novo.
 | -------------------------------- | ------------------------------------------------------- |
 | `make install`                   | venv + deps de dev                                      |
 | `make entrypoints`               | regenera `plux.ini`                                     |
-| `make start`                     | sobe o runtime AWS local em :4566                       |
+| `make start-runtime`             | sobe o runtime AWS in-process em :4566 (sem docker)     |
+| `make start`                     | sobe a stack via docker compose                         |
 | `make lint`                      | ruff + format check + openapi validator + mypy + deptry |
 | `make lint-modified`             | mesmo, só arquivos modificados                          |
 | `make format`                    | aplica `ruff check --fix` + `ruff format`               |

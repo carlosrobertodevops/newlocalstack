@@ -36,7 +36,7 @@ The basic steps include:
 
 > [!NOTE]
 > Consider running `make install-dev-types` to enable type hinting for efficient [integration tests](../../reference/testing/integration-tests/README.md) development.
-5. Start localstack in host mode using `make start`
+5. Start localstack in host mode using `make start-runtime` (in-process; `make start` brings up the docker compose stack)
 
 <div align="left">
       <a href="https://youtu.be/XHLBy6VKuCM">
