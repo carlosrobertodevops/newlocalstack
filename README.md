@@ -9,21 +9,23 @@ git clone https://github.com/localstack/localstack.git
 cd localstack
 
 make install          # Setup completo (venv + deps)
+make setup            # Setup completo (venv + deps)
 make start            # Inicia LocalStack + console UI
 ```
 
 Endpoints:
+
 - **Gateway (AWS):** `http://localhost:4566`
 - **Console UI:** `http://localhost:4577`
 - **TLS (Azure):** `https://localhost:4569` (requer `make setup-azure-tls`)
 
 ## Cloud Support
 
-| Cloud | Status | Gateway | Features |
-|-------|--------|---------|----------|
-| **AWS** | Stable | `localhost:4566` | 100+ serviços (Lambda, S3, DynamoDB, IAM, ...) |
-| **Azure** | Experimental | `localhost:4569` | Storage (Blob/Queue), Entra (OAuth2), ARM API |
-| **GCP** | Experimental | `localhost:4566` | Storage, Pub/Sub, Firestore, IAM, Functions |
+| Cloud     | Status       | Gateway          | Features                                       |
+| --------- | ------------ | ---------------- | ---------------------------------------------- |
+| **AWS**   | Stable       | `localhost:4566` | 100+ serviços (Lambda, S3, DynamoDB, IAM, ...) |
+| **Azure** | Experimental | `localhost:4569` | Storage (Blob/Queue), Entra (OAuth2), ARM API  |
+| **GCP**   | Experimental | `localhost:4566` | Storage, Pub/Sub, Firestore, IAM, Functions    |
 
 ## Documentation
 
