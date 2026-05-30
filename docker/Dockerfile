@@ -113,7 +113,7 @@ RUN --mount=type=cache,target=/root/.cache \
 # add files necessary to install runtime dependencies
 ADD Makefile pyproject.toml requirements-runtime.txt ./
 # add the localstack start scripts (necessary for the installation of the runtime dependencies, i.e. `pip install -e .`)
-ADD scripts/bin/localstack-supervisor bin/
+ADD scripts/bin/localstack-supervisor scripts/bin/
 
 # Install dependencies for running the LocalStack runtime
 RUN --mount=type=cache,target=/root/.cache\
@@ -131,7 +131,7 @@ ARG LOCALSTACK_BUILD_VERSION
 # add project files necessary to install all dependencies
 ADD Makefile pyproject.toml plux.ini ./
 # add the localstack start scripts (necessary for the installation of the runtime dependencies, i.e. `pip install -e .`)
-ADD scripts/bin/localstack-supervisor bin/
+ADD scripts/bin/localstack-supervisor scripts/bin/
 
 # add the code as late as possible
 ADD localstack-core/ /opt/code/localstack/localstack-core
