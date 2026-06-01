@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Architecture Review — newlocalstack — 2026-06-01</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { mono: ['ui-monospace','SFMono-Regular','Menlo','monospace'] } } } };
+</script>
+<style>
+  body { background:#0b0f14; }
+  .card { background:#121821; border:1px solid #1f2a37; }
+  .seam { background:#0e141b; border:1px dashed #2b3a4d; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .deep { background:#0c2a1e; color:#3ddc97; }
+  .shallow { background:#2a160c; color:#ff9d6e; }
+  .mermaid { background:#0e141b; border-radius:.5rem; padding:.75rem; }
+  .blk { width:100%; }
+  details>summary { cursor:pointer; list-style:none; }
+  details>summary::-webkit-details-marker { display:none; }
+</style>
+</head>
+<body class="text-slate-200 font-sans">
+
+<header class="max-w-6xl mx-auto px-6 pt-12 pb-6">
+  <p class="text-sm uppercase tracking-widest text-cyan-400/80">Deepening Review</p>
+  <h1 class="text-4xl font-bold text-white mt-1">newlocalstack — Architecture Friction</h1>
+  <p class="text-slate-400 mt-3 max-w-3xl">Multi-cloud LocalStack (AWS / Azure / GCP). Six candidates ranked by how much each turns a <b class="text-orange-300">shallow</b> module into a <b class="text-emerald-300">deep</b> one — small interface, high leverage, complexity concentrated for testability and AI-navigability.</p>
+  <div class="flex gap-3 mt-5 text-xs">
+    <span class="px-2 py-1 rounded bg-emerald-900/50 text-emerald-300 border border-emerald-700/40">Strong ×3</span>
+    <span class="px-2 py-1 rounded bg-amber-900/40 text-amber-300 border border-amber-700/40">Worth exploring ×2</span>
+    <span class="px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700">Speculative / blocked ×1</span>
+  </div>
+  <p class="text-slate-500 text-xs mt-4">No CONTEXT.md or docs/adr/ found — domain terms below are inferred from CLAUDE.md + code. Architecture vocabulary per the deepening glossary (Module / Interface / Implementation / Depth / Seam / Adapter / Deletion test).</p>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 pb-24 space-y-10">
+
+<!-- ============ CANDIDATE 1 ============ -->
+<section class="card rounded-xl p-7">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-xs text-cyan-400 mono">#1 · routing</p>
+      <h2 class="text-2xl font-bold text-white mt-1">Make cloud routing data-driven</h2>
+    </div>
+    <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-900/60 text-emerald-300 border border-emerald-600/40">Strong</span>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-5 mt-5">
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Files</h3>
+      <ul class="mono text-xs text-slate-400 mt-2 space-y-1">
+        <li>aws/handlers/multi_cloud.py <span class="text-slate-600">(~233 LOC, god-handler)</span></li>
+        <li>cloud/base.py <span class="text-slate-600">CloudProvider.edge_hosts</span></li>
+        <li>cloud/builtin.py <span class="text-slate-600">edge_hosts metadata (source of truth)</span></li>
+        <li>cloud/edge.py <span class="text-slate-600">already data-driven fnmatch</span></li>
+      </ul>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Problem</h3>
+      <p class="text-sm text-slate-400 mt-2">Routing knowledge lives in <b>three</b> places. <span class="mono text-orange-300">multi_cloud.py</span> hardcodes every Azure/GCP host suffix + path prefix inline (lines 21–96) and <b>ignores</b> <span class="mono">CloudProvider.edge_hosts</span> — which <span class="mono">edge.py</span> already consumes via fnmatch. <span class="mono">_match_cloud()</span> (line 160) is 21 sequential <span class="mono">if/any()</span> branches with cloud names <span class="mono">'azure'/'gcp'</span> returned at 9 sites. Adding cloud #4 = 80–140 new lines across 2 files, and the two host tables silently drift.</p>
+    </div>
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Solution</h3>
+      <p class="text-sm text-slate-400 mt-2">Promote <span class="mono">multi_cloud.py</span> to a thin <b>matcher</b> that reads from the registry. Move path-prefix / query / OData predicates onto <span class="mono">CloudProvider</span> metadata (alongside <span class="mono">edge_hosts</span>) so each cloud declares its own routing surface. One <span class="mono">match(request) → cloud</span> loop replaces the if/elif chain. <span class="mono">builtin.py</span> becomes the single source of truth; <span class="mono">edge.py</span> and the handler share it.</p>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Benefits</h3>
+      <ul class="text-sm text-slate-400 mt-2 space-y-1.5 list-disc list-inside">
+        <li><b class="text-emerald-300">Leverage:</b> add cloud #4 in ~4–6 lines of metadata, zero handler edits.</li>
+        <li><b class="text-emerald-300">Locality:</b> one routing table, no drift between the three definitions.</li>
+        <li><b class="text-emerald-300">Test surface:</b> routing becomes a pure <span class="mono">(host,path,query)→cloud</span> function — table-test every cloud without booting a gateway.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="seam rounded-lg p-4 mt-5">
+    <p class="text-xs uppercase tracking-wide text-slate-500 mb-2">Before → After</p>
+    <div class="mermaid blk">
+flowchart LR
+  subgraph BEFORE["BEFORE — knowledge in 3 places"]
+    R1[request] --> MC["multi_cloud.py<br/>21 if/any branches<br/>hardcoded hosts+paths"]
+    MC -.dup.-> BI1["builtin.py edge_hosts"]
+    MC -.dup.-> ED1["edge.py fnmatch"]
+  end
+  subgraph AFTER["AFTER — one table"]
+    R2[request] --> M2["match(request)<br/>thin loop"]
+    M2 --> REG["CloudProvider.edge_hosts<br/>+ path/query predicates<br/>(builtin.py = source of truth)"]
+    REG --> ED2["edge.py reuses same table"]
+  end
+    </div>
+  </div>
+</section>
+
+<!-- ============ CANDIDATE 2 ============ -->
+<section class="card rounded-xl p-7">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-xs text-cyan-400 mono">#2 · stack / reset</p>
+      <h2 class="text-2xl font-bold text-white mt-1">Push reset + inventory behind a Cloud seam</h2>
+    </div>
+    <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-900/60 text-emerald-300 border border-emerald-600/40">Strong</span>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-5 mt-5">
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Files</h3>
+      <ul class="mono text-xs text-slate-400 mt-2 space-y-1">
+        <li>aws/services/_localstack_stack.py <span class="text-slate-600">(if/elif ×3 + 9 per-cloud fns)</span></li>
+        <li>aws/services/internal.py <span class="text-slate-600">router wiring 778–796</span></li>
+        <li>azure/gateway.py · gcp/gateway.py <span class="text-slate-600">own the stores</span></li>
+      </ul>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Problem</h3>
+      <p class="text-sm text-slate-400 mt-2">The HTTP handler is <b>deep with the wrong stuff</b>. Lines 511, 537, 570 are three <span class="mono">if cloud=='aws'/elif 'azure'/elif 'gcp'</span> chains, and the actual reset/inventory logic reaches <b>inside</b> each gateway: <span class="mono">gateway.stores._subscriptions</span> for Azure, <span class="mono">gateway.stores._projects</span> for GCP, Moto backend walking for AWS. The <b>isolation contract</b> ("reset X never touches Y") holds only by <i>convention</i> — there is no structural boundary. Gateway internals leak across the seam.</p>
+    </div>
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Solution</h3>
+      <p class="text-sm text-slate-400 mt-2">Give every cloud gateway a uniform <span class="mono">inventory() → Stack</span> and <span class="mono">reset(service=None) → Result</span>. The handler then does <span class="mono">registry.require(cloud).build_gateway().reset()</span> — no per-cloud branch. Each gateway owns its own store-walking; the seam is the two methods, not the raw attributes.</p>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Benefits</h3>
+      <ul class="text-sm text-slate-400 mt-2 space-y-1.5 list-disc list-inside">
+        <li><b class="text-emerald-300">Isolation by construction:</b> a gateway can only touch its own stores — cross-cloud leak becomes impossible, not merely discouraged.</li>
+        <li><b class="text-emerald-300">Leverage:</b> cloud #4 implements 2 methods; the handler never changes.</li>
+        <li><b class="text-emerald-300">Test surface:</b> test <span class="mono">reset()</span> against an in-memory gateway — no HTTP, no Moto globals.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="seam rounded-lg p-4 mt-5">
+    <p class="text-xs uppercase tracking-wide text-slate-500 mb-2">Before → After</p>
+    <div class="mermaid blk">
+flowchart TB
+  subgraph B["BEFORE — handler reaches into stores"]
+    H1["_localstack_stack.py<br/>if aws / elif azure / elif gcp"] --> A1["gateway.stores._subscriptions"]
+    H1 --> G1["gateway.stores._projects"]
+    H1 --> M1["moto.list_all_backends()"]
+  end
+  subgraph A["AFTER — polymorphic seam"]
+    H2["handler:<br/>registry.require(cloud).reset()"] --> SE{{"Gateway.reset() / .inventory()"}}
+    SE --> AZ["AzureGateway owns its stores"]
+    SE --> GC["GcpGateway owns its stores"]
+    SE --> AW["AwsGateway owns moto walk"]
+  end
+    </div>
+  </div>
+</section>
+
+<!-- ============ CANDIDATE 3 ============ -->
+<section class="card rounded-xl p-7">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-xs text-cyan-400 mono">#3 · stores / spec</p>
+      <h2 class="text-2xl font-bold text-white mt-1">Extract <span class="mono text-emerald-300">BaseServiceSpecRegistry</span> + <span class="mono text-emerald-300">BaseCloudStores</span></h2>
+    </div>
+    <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-emerald-900/60 text-emerald-300 border border-emerald-600/40">Strong</span>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-5 mt-5">
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Files</h3>
+      <ul class="mono text-xs text-slate-400 mt-2 space-y-1">
+        <li>azure/spec.py ↔ gcp/spec.py <span class="text-slate-600">register/get/_key word-for-word identical</span></li>
+        <li>azure/stores.py ↔ gcp/stores.py <span class="text-slate-600">lazy get_X + CaseInsensitiveDict identical</span></li>
+      </ul>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Problem</h3>
+      <p class="text-sm text-slate-400 mt-2"><span class="mono">AzureServiceSpecRegistry</span> and <span class="mono">GcpServiceSpecRegistry</span> are identical except the spec dataclass, one field name (<span class="mono">namespace</span> vs <span class="mono">service</span>) and the exception class. Same for the stores' lazy <span class="mono">get_subscription</span>/<span class="mono">get_project</span> and a <b>copy-pasted</b> <span class="mono">CaseInsensitiveDict</span> (lines 8–29 in both). Bug fixed in one will not reach the other.</p>
+    </div>
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Solution</h3>
+      <p class="text-sm text-slate-400 mt-2">One generic <span class="mono">BaseServiceSpecRegistry[SpecT]</span> (exception + key-fields injected) and one <span class="mono">BaseCloudStores[T]</span> with <span class="mono">get_scope(id)→ScopeStore[T]</span>. Azure/GCP subclass and alias their domain method. <span class="mono">CaseInsensitiveDict</span> lives once.</p>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Benefits</h3>
+      <ul class="text-sm text-slate-400 mt-2 space-y-1.5 list-disc list-inside">
+        <li><b class="text-emerald-300">Locality:</b> ~120 LOC deleted, validation/exception logic in one place.</li>
+        <li><b class="text-emerald-300">Deletion test passes:</b> remove the base → identical code reappears in N clouds = it earns its keep.</li>
+        <li><b class="text-emerald-300">Test surface:</b> register/get edge cases tested once on the base, not per cloud.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="seam rounded-lg p-4 mt-5">
+    <p class="text-xs uppercase tracking-wide text-slate-500 mb-2">Before → After — mass diagram</p>
+    <div class="grid grid-cols-2 gap-4 text-xs mono">
+      <div>
+        <p class="text-orange-300 mb-2">BEFORE — copy ×2 (shallow)</p>
+        <div class="space-y-2">
+          <div class="shallow rounded p-2">azure/spec.py · 42 LOC</div>
+          <div class="shallow rounded p-2">gcp/spec.py · 38 LOC <span class="opacity-60">(≈identical)</span></div>
+          <div class="shallow rounded p-2">azure CaseInsensitiveDict · 22 LOC</div>
+          <div class="shallow rounded p-2">gcp CaseInsensitiveDict · 22 LOC <span class="opacity-60">(identical)</span></div>
+        </div>
+      </div>
+      <div>
+        <p class="text-emerald-300 mb-2">AFTER — one base (deep)</p>
+        <div class="space-y-2">
+          <div class="deep rounded p-2">cloud/_base/spec.py · ~15 LOC generic</div>
+          <div class="seam rounded p-2 text-slate-400">azure/spec.py · 6 LOC subclass</div>
+          <div class="seam rounded p-2 text-slate-400">gcp/spec.py · 6 LOC subclass</div>
+          <div class="deep rounded p-2">cloud/_base/stores.py · CaseInsensitiveDict + get_scope</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CANDIDATE 4 ============ -->
+<section class="card rounded-xl p-7">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-xs text-cyan-400 mono">#4 · registry contract</p>
+      <h2 class="text-2xl font-bold text-white mt-1">Give <span class="mono">CloudProvider.metadata</span> a schema</h2>
+    </div>
+    <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-amber-900/50 text-amber-300 border border-amber-600/40">Worth exploring</span>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-5 mt-5">
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Files</h3>
+      <ul class="mono text-xs text-slate-400 mt-2 space-y-1">
+        <li>cloud/base.py <span class="text-slate-600">CloudProvider, list_services()</span></li>
+        <li>cloud/builtin.py <span class="text-slate-600">ad-hoc metadata dicts 78–143</span></li>
+      </ul>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Problem</h3>
+      <p class="text-sm text-slate-400 mt-2"><span class="mono">metadata</span> is an untyped <span class="mono">dict[str,Any]</span> filled per-cloud with <span class="mono">scope_terms / id_format / auth</span> — no schema, so callers introspect keys blind. <span class="mono">list_services()</span> (base.py 43–48) <span class="mono">hasattr</span>-duck-types and returns <span class="mono">{}</span> silently on mismatch. Factory import paths are hardcoded strings; a missing module fails at first request, not at registration.</p>
+    </div>
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Solution</h3>
+      <p class="text-sm text-slate-400 mt-2">Replace the free dict with a typed <span class="mono">CloudMetadata</span> dataclass (scope_terms, id_format, auth). Make <span class="mono">list_services()</span> raise on an unrecognised registry shape instead of returning <span class="mono">{}</span>. Optionally validate factory targets at <span class="mono">register_builtins()</span> time.</p>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Benefits</h3>
+      <ul class="text-sm text-slate-400 mt-2 space-y-1.5 list-disc list-inside">
+        <li><b class="text-emerald-300">Interface honesty:</b> the metadata contract is the type, not tribal knowledge.</li>
+        <li><b class="text-emerald-300">Fail fast:</b> bad cloud wiring surfaces at boot, not mid-request.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="text-xs text-slate-500 mt-4">Pairs naturally with #1 — the routing predicates would live on this same typed metadata.</p>
+</section>
+
+<!-- ============ CANDIDATE 5 ============ -->
+<section class="card rounded-xl p-7">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-xs text-cyan-400 mono">#5 · gateway scaffold</p>
+      <h2 class="text-2xl font-bold text-white mt-1">Data-drive gateway provider/router wiring</h2>
+    </div>
+    <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-amber-900/50 text-amber-300 border border-amber-600/40">Worth exploring</span>
+  </div>
+  <div class="grid md:grid-cols-2 gap-5 mt-5">
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Files</h3>
+      <ul class="mono text-xs text-slate-400 mt-2 space-y-1">
+        <li>azure/gateway.py <span class="text-slate-600">__init__ 105–128</span></li>
+        <li>gcp/gateway.py <span class="text-slate-600">__init__ 73–142</span></li>
+      </ul>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Problem</h3>
+      <p class="text-sm text-slate-400 mt-2">Both <span class="mono">__init__</span> are the same shape: build N providers via <span class="mono">X(resource_manager, stores)</span>, then N routers via <span class="mono">Y(provider=...)</span>. GCP: 15 providers + 17 routers; Azure: 4 + 7. The <i>scaffold</i> is identical; only the list differs.</p>
+    </div>
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Solution</h3>
+      <p class="text-sm text-slate-400 mt-2">Declare providers/routers as data (<span class="mono">[(attr, ProviderCls), …]</span>) and let a shared loop instantiate + attach. <b>Keep <span class="mono">_select_router()</span> per-cloud</b> — Azure regex vs GCP host-equality dispatch is genuinely diverging and a shared base there would just breed overrides.</p>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide mt-4">Benefits</h3>
+      <ul class="text-sm text-slate-400 mt-2 space-y-1.5 list-disc list-inside">
+        <li><b class="text-emerald-300">Locality:</b> wiring becomes a readable manifest per cloud.</li>
+        <li class="text-amber-300/90"><b>Caveat:</b> lower ROI than #3; only the constructor is shared, dispatch stays separate. Defer until a 3rd cloud confirms the pattern.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CANDIDATE 6 ============ -->
+<section class="card rounded-xl p-7 opacity-95">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-xs text-cyan-400 mono">#6 · console UI</p>
+      <h2 class="text-2xl font-bold text-white mt-1">Consolidate <span class="mono">*Overview.tsx</span> (blocked by F4)</h2>
+    </div>
+    <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-slate-800 text-slate-400 border border-slate-600/40">Speculative</span>
+  </div>
+  <div class="rounded-lg border border-amber-700/40 bg-amber-950/30 p-4 mt-5">
+    <p class="text-sm text-amber-200">⚠ <b>Contradicts a documented decision.</b> <span class="mono">.claude/rules/ui-ux.md §6</span>: <i>"Não refatorar para componentes genéricos multi-cloud até PLAN.md fase F4. Manter padrão de rotas dedicadas."</i> Surfaced for awareness only — do not action before F4.</p>
+  </div>
+  <div class="grid md:grid-cols-2 gap-5 mt-5">
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Finding</h3>
+      <p class="text-sm text-slate-400 mt-2"><span class="mono">aws/azure/gcp/overview.tsx</span> are ~65–75% structurally identical (same <span class="mono">useQueries → switch(service.id) → render</span>). Note: the <span class="mono">stack.tsx</span> route layer is <b>already deep</b> — <span class="mono">AwsStack/AzureStack/GcpStack</span> delegate to one parameterized <span class="mono">CloudStack(cloud)</span> with 0% duplication. So the good pattern exists; overview just hasn't adopted it yet.</p>
+    </div>
+    <div>
+      <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Post-F4 move</h3>
+      <p class="text-sm text-slate-400 mt-2">Collapse three overviews into <span class="mono">CloudOverview(cloud)</span> driven by <span class="mono">registry.ts</span> — ~60–70% reduction, mirroring how <span class="mono">CloudStack</span> already works. Also extract the identical <span class="mono">azure.ts</span>/<span class="mono">gcp.ts</span> fetch error-handler (F4 already permits this one).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TOP REC ============ -->
+<section class="rounded-xl p-7 bg-gradient-to-br from-emerald-950/60 to-cyan-950/40 border border-emerald-700/40">
+  <p class="text-xs uppercase tracking-widest text-emerald-300">Top recommendation</p>
+  <h2 class="text-2xl font-bold text-white mt-1">Start with #3 (Base store/spec), then #2 (reset seam), then #1 (routing table)</h2>
+  <p class="text-slate-300 mt-3 max-w-3xl text-sm"><b>#3 first</b> — it's the lowest-risk, highest-certainty deepening: pure de-duplication with zero behavioural change, it passes the deletion test cleanly (delete the base → identical code reappears in every cloud), and it establishes a <span class="mono">cloud/_base/</span> home that #1 and #2 then build on.</p>
+  <p class="text-slate-300 mt-2 max-w-3xl text-sm"><b>#2 next</b> — the isolation contract is currently held by convention; turning <span class="mono">reset()/inventory()</span> into a gateway seam makes cross-cloud leakage <i>structurally impossible</i> and unblocks adding cloud #4 without touching the HTTP handler. <b>#1</b> completes the picture: with metadata typed (#4 folds in here), routing collapses from 3 drifting tables into one.</p>
+  <p class="text-slate-400 mt-3 text-xs">All three share one north star repeated across CLAUDE.md + multi-cloud.md: <i>"adding OCI/cloud #4 = new dir + register, no edits to shared handlers."</i> Today that promise is false in routing, reset, and stores/spec. These three make it true.</p>
+  <p class="text-slate-500 mt-4 text-xs">None contradict an ADR (none exist). #6 alone is blocked, by ui-ux.md §6 F4. Suggest writing the first ADR to record the "data-driven multi-cloud seam" direction once #2/#3 land.</p>
+</section>
+
+</main>
+
+<footer class="max-w-6xl mx-auto px-6 pb-16 text-xs text-slate-600">
+  Generated 2026-06-01 · architecture-review-2026-06-01.html · vocabulary: deepening glossary + inferred domain terms (no CONTEXT.md present)
+</footer>
+
+<script>mermaid.initialize({ startOnLoad:true, theme:'dark', themeVariables:{ fontFamily:'ui-monospace, Menlo, monospace', fontSize:'13px' } });</script>
+</body>
+</html>
