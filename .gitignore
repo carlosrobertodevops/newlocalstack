@@ -18,7 +18,9 @@ security/secret-scanning/
 .filesystem
 
 # proteger o projeto
+.agents/
 .claude/
+.opencode/
 .git-blame-ignore-revs
 CLAUDE.md
 AGENTS.md
